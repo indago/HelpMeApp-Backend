@@ -4,43 +4,18 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Set;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 import com.android.helpme.demo.R;
-import com.android.helpme.demo.R.drawable;
-import com.android.helpme.demo.R.string;
-import com.android.helpme.demo.gui.HelperActivity;
-import com.android.helpme.demo.gui.SwitcherActivity;
-import com.android.helpme.demo.gui.DrawManager.DRAWMANAGER_TYPE;
-import com.android.helpme.demo.manager.HistoryManager;
-import com.android.helpme.demo.manager.MessageOrchestrator;
-import com.android.helpme.demo.manager.PositionManager;
-import com.android.helpme.demo.manager.RabbitMQManager;
-import com.android.helpme.demo.manager.UserManager;
-import com.android.helpme.demo.manager.interfaces.RabbitMQManagerInterface;
-import com.android.helpme.demo.manager.interfaces.RabbitMQManagerInterface.ExchangeType;
-import com.android.helpme.demo.messagesystem.InAppMessage;
+import com.android.helpme.demo.interfaces.RabbitMQSerivceInterface;
 import com.android.helpme.demo.messagesystem.InAppMessageType;
-import com.android.helpme.demo.utils.ThreadPool;
-import com.android.helpme.demo.utils.User;
-import com.android.helpme.demo.utils.UserInterface;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.DefaultConsumer;
-import com.rabbitmq.client.Envelope;
-import com.rabbitmq.client.AMQP.BasicProperties;
-import com.rabbitmq.client.ShutdownListener;
-import com.rabbitmq.client.ShutdownSignalException;
 
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -60,8 +35,10 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 	private Boolean connected = false;
 	private ShutdownReactor shutdownReactor;
 	private RabbitMQService service;
+	private Class<Activity> activity;
 
 	public static final String EXCHANGE_NAME = "exchange_name",MESSAGE = "message",DATA_STRING = "data_string", EXCHANGE_TYPE = "exchange_type",TEXT = "text",TITLE = "title";
+	public static final String MESSENGER = "MESSENGER", ACTIVITY = "ACTIVITY";
 
 	// Used to receive messages from the Activity
 	final Messenger inMessenger = new Messenger(new IncomingHandler());
@@ -116,7 +93,8 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 		Bundle extras = intent.getExtras();
 		// Get messager from the Activity
 		if (extras != null) {
-			outMessenger = (Messenger) extras.get("MESSENGER");
+			outMessenger = (Messenger) extras.get(MESSENGER);
+			activity = (Class<Activity>) extras.get(ACTIVITY);
 		}
 		// Return our messenger to the Activity to get commands
 		return inMessenger.getBinder();
@@ -164,15 +142,15 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 	public void showNotification(String text, String title) {
 
 		// The PendingIntent to launch our activity if the user selects this notification
-		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-				new Intent(this, SwitcherActivity.class), 0);
+//		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+//				new Intent(this, SwitcherActivity.class), 0);
 
 
 		Notification notification = new Notification.Builder(this)
 		.setContentTitle(title)
 		.setContentText(text)
 		.setSmallIcon(R.drawable.ic_launcher)
-		.setContentIntent(contentIntent)
+//		.setContentIntent(contentIntent)
 		.setOngoing(true)
 		.build();
 

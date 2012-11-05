@@ -20,13 +20,13 @@ import android.app.Activity;
 import android.content.Context;
 
 import com.android.helpme.demo.exceptions.DontKnowWhatHappenedException;
-import com.android.helpme.demo.manager.interfaces.HistoryManagerInterface;
+import com.android.helpme.demo.interfaces.HistoryManagerInterface;
+import com.android.helpme.demo.interfaces.UserInterface;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystemInterface;
 import com.android.helpme.demo.messagesystem.InAppMessage;
 import com.android.helpme.demo.messagesystem.InAppMessageType;
 import com.android.helpme.demo.utils.Task;
-import com.android.helpme.demo.utils.UserInterface;
 
 /**
  * @author Andreas Wieland

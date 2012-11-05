@@ -23,14 +23,14 @@ import android.content.res.Resources;
 import android.provider.Settings.Secure;
 import android.util.Log;
 
-import com.android.helpme.demo.manager.interfaces.UserManagerInterface;
+import com.android.helpme.demo.interfaces.UserInterface;
+import com.android.helpme.demo.interfaces.UserManagerInterface;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystemInterface;
 import com.android.helpme.demo.messagesystem.InAppMessage;
 import com.android.helpme.demo.messagesystem.InAppMessageType;
 import com.android.helpme.demo.utils.ThreadPool;
 import com.android.helpme.demo.utils.User;
-import com.android.helpme.demo.utils.UserInterface;
 
 /**
  * 

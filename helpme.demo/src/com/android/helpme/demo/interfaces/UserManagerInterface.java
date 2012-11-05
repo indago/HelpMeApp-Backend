@@ -1,4 +1,4 @@
-package com.android.helpme.demo.manager.interfaces;
+package com.android.helpme.demo.interfaces;
 
 import java.util.ArrayList;
 
@@ -6,7 +6,6 @@ import android.app.Activity;
 import android.content.Context;
 
 import com.android.helpme.demo.utils.User;
-import com.android.helpme.demo.utils.UserInterface;
 
 public interface UserManagerInterface {
 

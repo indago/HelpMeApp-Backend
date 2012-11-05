@@ -1,39 +1,19 @@
 package com.android.helpme.demo.manager;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.w3c.dom.Element;
-
-import android.content.res.Resources.Theme;
-import android.graphics.Path.Direction;
-import android.location.Location;
-import android.util.Log;
-
 import com.android.helpme.demo.exceptions.UnkownMessageType;
 import com.android.helpme.demo.exceptions.WrongObjectType;
-import com.android.helpme.demo.gui.DrawManager;
-import com.android.helpme.demo.gui.SeekerActivity;
-import com.android.helpme.demo.gui.DrawManager.DRAWMANAGER_TYPE;
-import com.android.helpme.demo.manager.interfaces.HistoryManagerInterface;
-import com.android.helpme.demo.manager.interfaces.MessageHandlerInterface;
-import com.android.helpme.demo.manager.interfaces.MessageOrchestratorInterface;
-import com.android.helpme.demo.manager.interfaces.PositionManagerInterface;
-import com.android.helpme.demo.manager.interfaces.RabbitMQManagerInterface;
-import com.android.helpme.demo.manager.interfaces.RabbitMQManagerInterface.ExchangeType;
-import com.android.helpme.demo.manager.interfaces.UserManagerInterface;
+import com.android.helpme.demo.interfaces.DrawManagerInterface;
+import com.android.helpme.demo.interfaces.HistoryManagerInterface;
+import com.android.helpme.demo.interfaces.MessageHandlerInterface;
+import com.android.helpme.demo.interfaces.PositionManagerInterface;
+import com.android.helpme.demo.interfaces.RabbitMQManagerInterface;
+import com.android.helpme.demo.interfaces.UserManagerInterface;
+import com.android.helpme.demo.interfaces.DrawManagerInterface.DRAWMANAGER_TYPE;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
 import com.android.helpme.demo.messagesystem.InAppMessage;
-import com.android.helpme.demo.utils.ThreadPool;
 import com.android.helpme.demo.utils.User;
 import com.android.helpme.demo.utils.position.Position;
-import com.android.helpme.demo.utils.position.PositionInterface;
 
 /**
  * 
@@ -120,7 +100,7 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 	}
 
 	/**
-	 * if this user is a Helper this Method will be called and starts the List {@link DrawManager}
+	 * if this user is a Helper this Method will be called and starts the List {@link DrawManagerInterface}
 	 * @param incomingUser
 	 */
 	private void handleIncomingUserAsHelper(User incomingUser){
@@ -146,7 +126,7 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 	}
 
 	/**
-	 * if this user is a Help Seeker this Method will be called and starts the Map {@link DrawManager}
+	 * if this user is a Help Seeker this Method will be called and starts the Map {@link DrawManagerInterface}
 	 * @param incomingUser
 	 */
 	private void handleIncomingUserAsHelperSeeker(User incomingUser){

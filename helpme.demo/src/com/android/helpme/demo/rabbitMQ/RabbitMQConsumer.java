@@ -12,7 +12,7 @@ import org.json.simple.parser.ParseException;
 import android.os.RemoteException;
 import android.util.Log;
 
-import com.android.helpme.demo.manager.interfaces.RabbitMQManagerInterface;
+import com.android.helpme.demo.interfaces.RabbitMQManagerInterface;
 import com.android.helpme.demo.messagesystem.InAppMessageType;
 import com.android.helpme.demo.utils.User;
 import com.rabbitmq.client.Channel;

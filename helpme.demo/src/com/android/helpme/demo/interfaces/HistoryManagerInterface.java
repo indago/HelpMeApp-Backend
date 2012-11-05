@@ -1,14 +1,13 @@
 /**
  * 
  */
-package com.android.helpme.demo.manager.interfaces;
+package com.android.helpme.demo.interfaces;
 
 import java.util.ArrayList;
 
 import android.content.Context;
 
 import com.android.helpme.demo.utils.Task;
-import com.android.helpme.demo.utils.UserInterface;
 
 /**
  * @author Andreas Wieland

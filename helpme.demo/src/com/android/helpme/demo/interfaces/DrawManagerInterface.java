@@ -1,6 +1,6 @@
-package com.android.helpme.demo.gui;
+package com.android.helpme.demo.interfaces;
 
-public interface DrawManager {
+public interface DrawManagerInterface {
 	public enum DRAWMANAGER_TYPE {
 		SEEKER, LIST, LOGIN, MAP, HELPERCOMMING, SWITCHER;
 	}

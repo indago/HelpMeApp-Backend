@@ -5,14 +5,14 @@ package com.android.helpme.demo.manager;
 
 import java.util.ArrayList;
 
-import com.android.helpme.demo.manager.interfaces.PositionManagerInterface;
+import com.android.helpme.demo.interfaces.PositionInterface;
+import com.android.helpme.demo.interfaces.PositionManagerInterface;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystemInterface;
 import com.android.helpme.demo.messagesystem.InAppMessage;
 import com.android.helpme.demo.messagesystem.InAppMessageType;
 import com.android.helpme.demo.utils.User;
 import com.android.helpme.demo.utils.position.Position;
-import com.android.helpme.demo.utils.position.PositionInterface;
 import com.android.helpme.demo.utils.position.SimpleSelectionStrategy;
 
 import android.app.Activity;

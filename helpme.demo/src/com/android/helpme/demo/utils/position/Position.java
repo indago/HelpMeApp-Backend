@@ -23,6 +23,7 @@ import java.util.Date;
 
 import org.json.simple.JSONObject;
 
+import com.android.helpme.demo.interfaces.PositionInterface;
 import com.android.helpme.demo.utils.User;
 
 import android.R.dimen;

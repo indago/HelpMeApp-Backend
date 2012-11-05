@@ -10,13 +10,14 @@ import java.util.TimerTask;
 
 import org.json.simple.JSONObject;
 
+import com.android.helpme.demo.interfaces.PositionManagerInterface;
+import com.android.helpme.demo.interfaces.RabbitMQManagerInterface;
+import com.android.helpme.demo.interfaces.UserInterface;
+import com.android.helpme.demo.interfaces.UserManagerInterface;
+import com.android.helpme.demo.interfaces.RabbitMQManagerInterface.ExchangeType;
 import com.android.helpme.demo.manager.PositionManager;
 import com.android.helpme.demo.manager.RabbitMQManager;
 import com.android.helpme.demo.manager.UserManager;
-import com.android.helpme.demo.manager.interfaces.PositionManagerInterface;
-import com.android.helpme.demo.manager.interfaces.RabbitMQManagerInterface;
-import com.android.helpme.demo.manager.interfaces.RabbitMQManagerInterface.ExchangeType;
-import com.android.helpme.demo.manager.interfaces.UserManagerInterface;
 import com.android.helpme.demo.utils.position.Position;
 
 /**

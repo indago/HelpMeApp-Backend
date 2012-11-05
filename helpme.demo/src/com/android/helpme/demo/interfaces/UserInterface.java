@@ -1,11 +1,10 @@
-package com.android.helpme.demo.utils;
+package com.android.helpme.demo.interfaces;
 
 import org.json.simple.JSONObject;
 
 import android.content.SharedPreferences;
 
 import com.android.helpme.demo.utils.position.Position;
-import com.android.helpme.demo.utils.position.PositionInterface;
 import com.google.android.maps.GeoPoint;
 
 public interface UserInterface {

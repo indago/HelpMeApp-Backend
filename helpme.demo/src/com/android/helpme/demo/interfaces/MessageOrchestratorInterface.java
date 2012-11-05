@@ -1,4 +1,4 @@
-package com.android.helpme.demo.manager.interfaces;
+package com.android.helpme.demo.interfaces;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;

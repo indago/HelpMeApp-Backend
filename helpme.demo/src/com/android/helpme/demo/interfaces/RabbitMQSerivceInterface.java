@@ -1,8 +1,7 @@
-package com.android.helpme.demo.rabbitMQ;
+package com.android.helpme.demo.interfaces;
 
 import java.io.IOException;
 
-import com.android.helpme.demo.manager.interfaces.RabbitMQManagerInterface.ExchangeType;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ShutdownSignalException;
 

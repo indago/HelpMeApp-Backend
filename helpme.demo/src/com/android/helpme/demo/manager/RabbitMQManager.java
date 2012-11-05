@@ -6,6 +6,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -20,8 +21,9 @@ import android.os.RemoteException;
 import com.android.helpme.demo.R;
 import com.android.helpme.demo.exceptions.UnboundException;
 import com.android.helpme.demo.exceptions.WrongObjectType;
-import com.android.helpme.demo.manager.interfaces.RabbitMQManagerInterface;
-import com.android.helpme.demo.manager.interfaces.UserManagerInterface;
+import com.android.helpme.demo.interfaces.RabbitMQManagerInterface;
+import com.android.helpme.demo.interfaces.UserInterface;
+import com.android.helpme.demo.interfaces.UserManagerInterface;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystemInterface;
 import com.android.helpme.demo.messagesystem.InAppMessage;
@@ -30,7 +32,6 @@ import com.android.helpme.demo.rabbitMQ.RabbitMQService;
 import com.android.helpme.demo.rabbitMQ.RabbitMQServiceMessages;
 import com.android.helpme.demo.utils.ThreadPool;
 import com.android.helpme.demo.utils.User;
-import com.android.helpme.demo.utils.UserInterface;
 
 public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQManagerInterface{
 	public static final String LOGTAG = RabbitMQManager.class.getSimpleName();
@@ -234,16 +235,18 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 	}
 
 	@Override
-	public Runnable bindToService(final Context context) {
+	public Runnable bindToService(final Activity activity) {
 		return new Runnable() {
 
 			@Override
 			public void run() {
 				Intent intent = null;
+				Context context = activity.getApplicationContext();
 				intent = new Intent(context, RabbitMQService.class);
 				//we create a new Messanger with our defined handler
 				Messenger messenger = new Messenger(handler);
-				intent.putExtra("MESSENGER", messenger);
+				intent.putExtra(RabbitMQService.MESSENGER, messenger);
+				intent.putExtra(RabbitMQService.ACTIVITY, activity.getClass());
 				context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
 			}
 		};

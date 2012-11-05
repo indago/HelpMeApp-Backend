@@ -1,11 +1,11 @@
-package com.android.helpme.demo.manager.interfaces;
+package com.android.helpme.demo.interfaces;
 
 import java.io.IOException;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.IBinder;
 
-import com.android.helpme.demo.utils.UserInterface;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ShutdownSignalException;
 
@@ -29,7 +29,7 @@ public interface RabbitMQManagerInterface {
 	 * @param context
 	 * @return
 	 */
-	public Runnable bindToService(Context context);
+	public Runnable bindToService(Activity activity);
 
 	/**
 	 * Sends {@link String} on main channel with the name "main"

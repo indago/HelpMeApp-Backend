@@ -7,10 +7,10 @@ import java.util.Date;
 import java.util.HashMap;
 
 import com.android.helpme.demo.exceptions.WrongObjectType;
-import com.android.helpme.demo.gui.DrawManager;
-import com.android.helpme.demo.gui.DrawManager.DRAWMANAGER_TYPE;
-import com.android.helpme.demo.manager.interfaces.MessageOrchestratorInterface;
-import com.android.helpme.demo.manager.interfaces.RabbitMQManagerInterface;
+import com.android.helpme.demo.interfaces.DrawManagerInterface;
+import com.android.helpme.demo.interfaces.MessageOrchestratorInterface;
+import com.android.helpme.demo.interfaces.RabbitMQManagerInterface;
+import com.android.helpme.demo.interfaces.DrawManagerInterface.DRAWMANAGER_TYPE;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystemInterface;
 import com.android.helpme.demo.messagesystem.InAppMessage;
@@ -31,7 +31,7 @@ public class MessageOrchestrator extends MessageHandler implements MessageOrches
 	private static MessageOrchestrator messageOrchestrator;
 	private InAppMessage message;
 	private ArrayList<String> arrayList;
-	private HashMap<DrawManager.DRAWMANAGER_TYPE, DrawManager> drawManagerMap;
+	private HashMap<DrawManagerInterface.DRAWMANAGER_TYPE, DrawManagerInterface> drawManagerMap;
 
 	public static MessageOrchestrator getInstance() {
 		if (messageOrchestrator == null) {
@@ -42,7 +42,7 @@ public class MessageOrchestrator extends MessageHandler implements MessageOrches
 
 	private MessageOrchestrator() {
 		arrayList = new ArrayList<String>();
-		drawManagerMap = new HashMap<DrawManager.DRAWMANAGER_TYPE, DrawManager>();
+		drawManagerMap = new HashMap<DrawManagerInterface.DRAWMANAGER_TYPE, DrawManagerInterface>();
 	}
 
 	/*
@@ -124,7 +124,7 @@ public class MessageOrchestrator extends MessageHandler implements MessageOrches
 	 * ()
 	 */
 	@Override
-	public HashMap<DrawManager.DRAWMANAGER_TYPE, DrawManager> getDrawManagers() {
+	public HashMap<DrawManagerInterface.DRAWMANAGER_TYPE, DrawManagerInterface> getDrawManagers() {
 		return drawManagerMap;
 	}
 
@@ -136,7 +136,7 @@ public class MessageOrchestrator extends MessageHandler implements MessageOrches
 	 * (com.android.helpme.demo.DrawManager.DRAWMANAGER_TYPE)
 	 */
 	@Override
-	public DrawManager getDrawManager(DRAWMANAGER_TYPE type) {
+	public DrawManagerInterface getDrawManager(DRAWMANAGER_TYPE type) {
 		return drawManagerMap.get(type);
 	}
 
@@ -149,7 +149,7 @@ public class MessageOrchestrator extends MessageHandler implements MessageOrches
 	 * com.android.helpme.demo.DrawManager)
 	 */
 	@Override
-	public void addDrawManager(DrawManager.DRAWMANAGER_TYPE type, DrawManager drawManager) {
+	public void addDrawManager(DrawManagerInterface.DRAWMANAGER_TYPE type, DrawManagerInterface drawManager) {
 		this.drawManagerMap.put(type, drawManager);
 	}
 
