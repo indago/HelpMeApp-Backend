@@ -25,7 +25,7 @@ import com.android.helpme.demo.utils.position.Position;
  *
  */
 public class Task extends Observable{
-	public static final String ID = "id", START_TIME ="start_time", STOP_TIME="stop_time",SUCCESSFUL ="successful",FAILED ="failed", RUNNING = "running", LOOKING = "looking", STATE = "state";
+	public static final String USER = "user", START_TIME ="start_time",START_POSITION = "start_position",STOP_POSITION = "stop_position", STOP_TIME="stop_time",SUCCESSFUL ="successful",FAILED ="failed", RUNNING = "running", LOOKING = "looking", STATE = "state";
 	public static final int LONGDISTANCE = 1000;
 	public static final int MIDDISTANCE = 100;
 	public static final int SHORTDISTANCE = 10;
@@ -107,6 +107,7 @@ public class Task extends Observable{
 	
 	private void setUser(UserInterface user) {
 		answered = true;
+		this.startPosition = user.getPosition();
 		this.user = user;
 	}
 	public double getDistance(){
@@ -164,11 +165,14 @@ public class Task extends Observable{
 	
 	public JSONObject stopTask() {
 		run(positionManagerInterface.stopLocationTracking());
+		sendPosition(user.getPosition());
 		run(rabbitMQManagerInterface.endSubscribtionToChannel(exchangeName));
 		JSONObject jsonObject = new JSONObject();
-		jsonObject.put(ID, user.getId());
+		jsonObject.put(USER, user.getJsonObject());
 		jsonObject.put(START_TIME, startTime);
-		jsonObject.put(STOP_TIME, user.getPosition().getMeasureDateTime());
+		jsonObject.put(STOP_TIME, System.currentTimeMillis());
+		jsonObject.put(START_POSITION, startPosition.getJSON());
+		jsonObject.put(STOP_POSITION, positionManagerInterface.getLastPosition().getJSON());
 		jsonObject.put(STATE, state);
 		return jsonObject;
 	}

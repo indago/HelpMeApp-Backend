@@ -7,6 +7,7 @@ import java.util.Set;
 import com.android.helpme.demo.R;
 import com.android.helpme.demo.interfaces.RabbitMQSerivceInterface;
 import com.android.helpme.demo.messagesystem.InAppMessageType;
+import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -254,12 +255,15 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 			@Override
 			public void run() {
 				Channel channel = subscribedChannels.get(exchangeName);
-				if (channel != null) {
+				if (channel != null ) {
 					try {
 						channel.close(0,exchangeName);
+					}catch(AlreadyClosedException e){
+						Log.e(LOGTAG, e.toString());
+						channel.notifyListeners();
 					} catch (IOException e) {
 						Log.e(LOGTAG, e.toString());
-					}
+					} 
 				}
 			}
 		};

@@ -25,6 +25,7 @@ import org.json.simple.JSONObject;
 
 import com.android.helpme.demo.interfaces.PositionInterface;
 import com.android.helpme.demo.utils.User;
+import com.google.android.maps.GeoPoint;
 
 import android.R.dimen;
 import android.location.Location;
@@ -171,5 +172,13 @@ public class Position implements Serializable, PositionInterface {
 		string += DATE +" : "+DateFormat.getDateInstance(DateFormat.FULL).format(new Date(date)) +"\n";
 		
 		return string;
+	}
+	
+	@Override
+	public GeoPoint getGeoPoint() {
+		int latitude = (int)(getLatitude() * 1e6);
+		int longitude = (int)(getLongitude() * 1e6);
+		GeoPoint point = new GeoPoint(latitude,longitude);
+		return point;
 	}
 }

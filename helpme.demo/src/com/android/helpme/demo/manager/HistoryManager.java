@@ -16,6 +16,10 @@ import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 import android.app.Activity;
 import android.content.Context;
 
@@ -39,7 +43,7 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 	private InAppMessage message;
 	private static final String FILENAME = "history_file";
 	private Context context;
-	private ArrayList<String> arrayList;
+	private ArrayList<JSONObject> arrayList;
 
 	public static HistoryManager getInstance(){
 		if (manager == null) {
@@ -53,7 +57,7 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 	 */
 	private HistoryManager() {
 		context = null;
-		arrayList = new ArrayList<String>();
+		arrayList = new ArrayList<JSONObject>();
 	}
 
 	/*
@@ -81,23 +85,17 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 	public AbstractMessageSystemInterface getManager() {
 		return manager;
 	}
-
-	/* (non-Javadoc)
-	 * @see com.android.helpme.demo.manager.interfaces.HistoryManagerInterface#getStatistics()
-	 */
+	
 	@Override
-	public ArrayList<String> getStatistics() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.android.helpme.demo.manager.interfaces.HistoryManagerInterface#getHistory()
-	 */
-	@Override
-	public ArrayList<String> getHistory() {
-		// TODO Auto-generated method stub
-		return null;
+	public Runnable getHistory()  {
+		return new Runnable() {
+			
+			@Override
+			public void run() {
+				fireMessageFromManager(arrayList, InAppMessageType.HISTORY);
+			}
+		};
+		
 	}
 
 	/* (non-Javadoc)
@@ -139,7 +137,7 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 	public void stopTask() {
 		if (currentTask != null) {
 			if (currentTask.isAnswered()) {
-				arrayList.add(currentTask.stopTask().toString());
+				arrayList.add(currentTask.stopTask());
 			}else {
 				currentTask.stopUnfinishedTask();
 			}
@@ -153,13 +151,17 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 				FileInputStream inputStream = context.openFileInput(FILENAME);
 				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 				String string = null; 
+				JSONParser parser = new JSONParser();
 				while ((string = reader.readLine()) != null) {
-					arrayList.add(string);
+					JSONObject jsonObject = (JSONObject) parser.parse(string);
+					arrayList.add(jsonObject);
 				}
 				reader.close();
 				inputStream.close();
 				return true;
 			}catch(IOException e){
+				fireError(e);
+			} catch (ParseException e) {
 				fireError(e);
 			}
 		}
@@ -172,8 +174,8 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 				FileOutputStream fos = context.openFileOutput(FILENAME, Context.MODE_PRIVATE);
 				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));
 
-				for (String string : arrayList) {
-					writer.write(string);
+				for (JSONObject jsonObject : arrayList) {
+					writer.write(jsonObject.toString());
 				}
 				
 				writer.close();

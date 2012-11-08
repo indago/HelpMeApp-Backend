@@ -28,8 +28,6 @@ public interface UserManagerInterface {
 
 	public UserInterface getThisUser();
 
-	public void setThisUser(UserInterface user, String id);
-	
 	public Runnable setThisUser(UserInterface userInterface, Context context);
 
 }

@@ -33,11 +33,11 @@ public class User implements UserInterface {
 	private String id;
 	private Boolean helfer;
 	private Position position;
-	private String pic; //TODO
+	private int pic; //TODO
 	private Integer age;
 	private String handyNr;
 
-	public User(String id,String name, Boolean helfer,String pic,Integer age, String handyNr) {
+	public User(String id,String name, Boolean helfer,int pic,Integer age, String handyNr) {
 		this.name = name;
 		this.helfer = helfer;
 		this.id = id;
@@ -50,7 +50,7 @@ public class User implements UserInterface {
 		this.name = (String) object.get(NAME);
 		this.helfer = (Boolean) object.get(HELFER);
 		this.id = (String) object.get(ID);
-		this.pic = (String) object.get(PICTURE);
+		this.pic = new Integer(object.get(PICTURE).toString());
 		this.age = new Integer(object.get(AGE).toString());
 		this.handyNr  = ((String)object.get(HANDYNUMBER));
 		if (object.get(POSITION) != null) {
@@ -154,10 +154,7 @@ public class User implements UserInterface {
 	@Override
 	public GeoPoint getGeoPoint() {
 		if (getPosition() != null) {
-			int latitude = (int)(getPosition().getLatitude() * 1e6);
-			int longitude = (int)(getPosition().getLongitude() * 1e6);
-			GeoPoint point = new GeoPoint(latitude,longitude);
-			return point;
+			return position.getGeoPoint();
 		}else
 			return null;
 
@@ -180,7 +177,7 @@ public class User implements UserInterface {
 	 * @see com.android.helpme.demo.utils.UserInterface#getPicture()
 	 */
 	@Override
-	public String getPicture() {
+	public int getPicture() {
 		return this.pic;
 	}
 	

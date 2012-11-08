@@ -46,7 +46,10 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 			if (getDrawManager(DRAWMANAGER_TYPE.MAP) != null) {
 				getDrawManager(DRAWMANAGER_TYPE.MAP).drawThis(userManagerInterface.getThisUser());
 			}
-			historyManagerInterface.getTask().sendPosition(position);
+
+			if (historyManagerInterface.getTask() != null) {
+				historyManagerInterface.getTask().sendPosition(position);
+			}
 			break;
 
 		default:
@@ -111,12 +114,12 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 		if (historyManagerInterface.getTask() != null) {
 			historyManagerInterface.getTask().updatePosition(incomingUser);
 		}
-		
+
 		if (getDrawManager(DRAWMANAGER_TYPE.MAP) != null) {
-			
+
 			if (historyManagerInterface.getTask().isUserInShortDistance()) {
 				getDrawManager(DRAWMANAGER_TYPE.MAP).drawThis(historyManagerInterface.getTask());
-				
+
 			}else{
 				getDrawManager(DRAWMANAGER_TYPE.MAP).drawThis(incomingUser);
 			}
@@ -140,18 +143,29 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 			else {
 				getDrawManager(DRAWMANAGER_TYPE.HELPERCOMMING).drawThis(incomingUser);
 			}
-			
+
 		} else {
 
 			getDrawManager(DRAWMANAGER_TYPE.SEEKER).drawThis(incomingUser);
 		}
 	}
-	
+
 	protected void handleHistoryMessages(InAppMessage message) {
 		switch (message.getType()) {
 		case TIMEOUT:
 			historyManagerInterface.stopTask();
 			getDrawManager(DRAWMANAGER_TYPE.SEEKER).drawThis(message.getObject());
+			break;
+		case LOADED:
+			if (getDrawManager(DRAWMANAGER_TYPE.HISTORY) != null) {
+				getDrawManager(DRAWMANAGER_TYPE.HISTORY).drawThis(message.getObject());
+			}
+			break;
+			
+		case HISTORY:
+			if (getDrawManager(DRAWMANAGER_TYPE.HISTORY) != null) {
+				getDrawManager(DRAWMANAGER_TYPE.HISTORY).drawThis(message.getObject());
+			}
 			break;
 
 		default:

@@ -15,9 +15,7 @@ import com.android.helpme.demo.utils.Task;
  */
 public interface HistoryManagerInterface {
 	
-	public ArrayList<String> getStatistics();
-	
-	public ArrayList<String> getHistory();
+	public Runnable getHistory();
 
 	public Task getTask();
 	

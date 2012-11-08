@@ -23,6 +23,7 @@ import android.content.res.Resources;
 import android.provider.Settings.Secure;
 import android.util.Log;
 
+import com.android.helpme.demo.R;
 import com.android.helpme.demo.interfaces.UserInterface;
 import com.android.helpme.demo.interfaces.UserManagerInterface;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
@@ -47,6 +48,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	private HashMap<String,User> users;
 	private UserInterface thisUser;
 	private boolean userSet;
+	private enum pictures {john,emperor, curie,senior1,senior2,helfer1};
 
 	public static UserManager getInstance() {
 		if (manager == null) {
@@ -74,12 +76,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 		return thisUser;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see com.android.helpme.demo.manager.interfaces.UserManagerInterface#setThisUser(com.android.helpme.demo.utils.UserInterface, java.lang.String)
-	 */
-	@Override
-	public void setThisUser(UserInterface user, String id) {
+	private void setThisUser(UserInterface user, String id) {
 		if (!userSet) {
 			this.thisUser = new User(id, user.getName(), user.getHelfer(), user.getPicture(), user.getAge(), user.getHandyNr());
 			userSet =true;
@@ -94,6 +91,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 			public void run() {
 				String android_id = Secure.getString(context.getContentResolver(),Secure.ANDROID_ID); 
 				setThisUser(userInterface, android_id);
+				ThreadPool.runTask(saveUserChoice(context));
 				ThreadPool.runTask(clear());
 			}
 		};
@@ -185,6 +183,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 					for (Object key : set) {
 						String string = (String) properties.get(key);
 						JSONObject object = (JSONObject) parser.parse(string);
+						object = setPicture(object,context);
 						list.add(new User(object));
 					}
 					Log.i(LOGTAG, "The properties are now loaded");
@@ -196,6 +195,38 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 				}
 			}
 		};
+	}
+
+	private JSONObject setPicture(JSONObject object, Context context){
+		String key = User.PICTURE;
+		pictures name = null;
+		try{
+			name = pictures.valueOf((String)object.get(key));
+		}catch(IllegalArgumentException exception){
+			name = pictures.john;
+		}
+		switch (name) {
+		case curie:
+			object.put(key, R.drawable.curie);
+			break;
+		case emperor:
+			object.put(key, R.drawable.emperor);
+			break;
+		case senior1:
+			object.put(key, R.drawable.senior1);
+			break;
+		case senior2:
+			object.put(key, R.drawable.senior2);
+			break;
+		case helfer1:
+			object.put(key, R.drawable.helfer1);
+			break;
+
+		default:
+			object.put(key, R.drawable.androidmarker_blue);
+			break;
+		}
+		return object;
 	}
 
 	/*
@@ -260,7 +291,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 		editor.putString(User.ID, thisUser.getId());
 		editor.putString(User.HANDYNUMBER, thisUser.getHandyNr());
 		editor.putString(User.NAME, thisUser.getName());
-		editor.putString(User.PICTURE, thisUser.getPicture());
+		editor.putInt(User.PICTURE, thisUser.getPicture());
 
 		return editor.commit();
 	}
@@ -273,7 +304,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 		User user = new User(preferences.getString(User.ID,null),
 				preferences.getString(User.NAME, null), 
 				preferences.getBoolean(User.HELFER, false), 
-				preferences.getString(User.PICTURE, null), 
+				preferences.getInt(User.PICTURE, Integer.MIN_VALUE), 
 				preferences.getInt(User.AGE, Integer.MIN_VALUE), 
 				preferences.getString(User.HANDYNUMBER, null));
 		if (user.getId() == null) {

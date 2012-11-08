@@ -213,4 +213,8 @@ public class PositionManager extends AbstractMessageSystem implements PositionMa
 		return started;
 	}
 
+	@Override
+	public Position getLastPosition() {
+		return new Position(lastLocation);
+	}
 }

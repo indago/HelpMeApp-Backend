@@ -17,7 +17,7 @@ public interface UserInterface {
 
 	public Position getPosition();
 	
-	public String getPicture();
+	public int getPicture();
 	
 	public int getAge();
 	
