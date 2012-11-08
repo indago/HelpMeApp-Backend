@@ -216,7 +216,10 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 					if (channel != null) {
 						channel.basicPublish(exchangeName, "", null, string.getBytes());
 					}
-				} catch (IOException e) {
+				} catch(AlreadyClosedException exception){
+					Log.e(LOGTAG, exception.toString());
+				}
+				catch (IOException e) {
 					Log.e(LOGTAG, e.toString());
 				}
 
