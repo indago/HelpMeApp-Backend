@@ -10,8 +10,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
@@ -20,7 +18,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import android.app.Activity;
 import android.content.Context;
 
 import com.android.helpme.demo.exceptions.DontKnowWhatHappenedException;
@@ -175,7 +172,9 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));
 
 				for (JSONObject jsonObject : arrayList) {
-					writer.write(jsonObject.toString());
+					String string = jsonObject.toJSONString();
+					string = string.replaceAll("(\\r|\\n)", "");
+					writer.write(string);
 				}
 				
 				writer.close();

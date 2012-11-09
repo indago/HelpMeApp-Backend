@@ -69,12 +69,22 @@ public class Position implements Serializable, PositionInterface {
 
 	public Position(JSONObject object) {
 		JSONObject position = (JSONObject) object.get(User.POSITION);
-		this.longitude = (Double)position.get(LONGITUDE);
-		this.latitude = (Double)position.get(LATITUDE);
-		this.speed = (Double)position.get(SPEED);
-		this.direction = (Double)position.get(DIRECTION);
-		this.precision = (Double)position.get(PRECISION);
-		this.date = (Long)position.get(DATE);
+		if (position != null) {
+			this.longitude = (Double)position.get(LONGITUDE);
+			this.latitude = (Double)position.get(LATITUDE);
+			this.speed = (Double)position.get(SPEED);
+			this.direction = (Double)position.get(DIRECTION);
+			this.precision = (Double)position.get(PRECISION);
+			this.date = (Long)position.get(DATE);
+		}else {
+			this.longitude = (Double)object.get(LONGITUDE);
+			this.latitude = (Double)object.get(LATITUDE);
+			this.speed = (Double)object.get(SPEED);
+			this.direction = (Double)object.get(DIRECTION);
+			this.precision = (Double)object.get(PRECISION);
+			this.date = (Long)object.get(DATE);
+		}
+		
 	}
 
 	/* (non-Javadoc)
