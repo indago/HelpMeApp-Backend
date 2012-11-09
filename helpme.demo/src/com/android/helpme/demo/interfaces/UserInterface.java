@@ -13,11 +13,13 @@ public interface UserInterface {
 
 	public String getName();
 
-	public Boolean getHelfer();
+	public Boolean isHelper();
 
 	public Position getPosition();
 	
 	public int getPicture();
+	
+	public void setPicture(int pic);
 	
 	public int getAge();
 	

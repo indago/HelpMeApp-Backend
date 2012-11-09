@@ -88,10 +88,10 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 
 			if (!user.getId().equalsIgnoreCase(userManagerInterface.getThisUser().getId())) {
 
-				if (userManagerInterface.getThisUser().getHelfer()) {
+				if (userManagerInterface.getThisUser().isHelper()) {
 					handleIncomingUserAsHelper(user);
 				}else {
-					if (user.getHelfer()) {
+					if (user.isHelper()) {
 						handleIncomingUserAsHelperSeeker(user);
 					}
 					
@@ -184,7 +184,9 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 	protected void handleUserMessages(InAppMessage message) {
 		switch (message.getType()) {
 		case LOADED:
-			getDrawManager(DRAWMANAGER_TYPE.SWITCHER).drawThis(message.getObject());
+			if (getDrawManager(DRAWMANAGER_TYPE.SWITCHER) != null) {
+				getDrawManager(DRAWMANAGER_TYPE.SWITCHER).drawThis(message.getObject());
+			}
 
 			break;
 		case RECEIVED_DATA:

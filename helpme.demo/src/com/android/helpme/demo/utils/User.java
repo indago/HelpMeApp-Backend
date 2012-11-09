@@ -57,7 +57,7 @@ public class User implements UserInterface {
 			this.position = new Position(object);
 		}
 	}
-	
+
 
 	/* (non-Javadoc)
 	 * @see com.android.helpme.demo.utils.UserInterface#getName()
@@ -66,12 +66,12 @@ public class User implements UserInterface {
 	public String getName() {
 		return name;
 	}
-
-	/* (non-Javadoc)
-	 * @see com.android.helpme.demo.utils.UserInterface#getHelfer()
+	/*
+	 * (non-Javadoc)
+	 * @see com.android.helpme.demo.interfaces.UserInterface#isHelper()
 	 */
 	@Override
-	public Boolean getHelfer() {
+	public Boolean isHelper() {
 		return helfer;
 	}
 
@@ -180,7 +180,7 @@ public class User implements UserInterface {
 	public int getPicture() {
 		return this.pic;
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see com.android.helpme.demo.utils.UserInterface#getDistanceTo(com.android.helpme.demo.utils.UserInterface)
@@ -191,5 +191,14 @@ public class User implements UserInterface {
 			return this.position.calculateSphereDistance(userInterface.getPosition());
 		}else
 			return -1;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.android.helpme.demo.interfaces.UserInterface#setPicture(int)
+	 */
+	@Override
+	public void setPicture(int pic) {
+		this.pic = pic;
 	}
 }
