@@ -54,7 +54,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	private UserInterface thisUser;
 	private boolean userSet;
 	private Timer timer;
-	private enum pictures {john,emperor, curie,senior1,senior2,helfer1,helfer2};
+	public enum pictures {john,emperor, curie,senior1,senior2,senior3,helper1,helper2,helper3};
 
 	public static UserManager getInstance() {
 		if (manager == null) {
@@ -217,26 +217,32 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 		}
 		switch (name) {
 		case curie:
-			object.put(key, R.drawable.curie);
+			object.put(key, pictures.curie.ordinal());
 			break;
 		case emperor:
-			object.put(key, R.drawable.emperor);
+			object.put(key, pictures.emperor.ordinal());
 			break;
 		case senior1:
-			object.put(key, R.drawable.senior1);
+			object.put(key, pictures.senior1.ordinal());
 			break;
 		case senior2:
-			object.put(key, R.drawable.senior2);
+			object.put(key, pictures.senior2.ordinal());
 			break;
-		case helfer1:
-			object.put(key, R.drawable.helfer1);
+		case senior3:
+			object.put(key, pictures.senior3.ordinal());
 			break;
-		case helfer2:
-			//		object.put(key, R.drawable.helfer2);
+		case helper1:
+			object.put(key, pictures.helper1.ordinal());
+			break;
+		case helper2:
+			object.put(key, pictures.helper2.ordinal());
+			break;
+		case helper3:
+			object.put(key, pictures.helper3.ordinal());
 			break;
 
 		default:
-			object.put(key, R.drawable.androidmarker_blue);
+			object.put(key, pictures.john.ordinal());
 			break;
 		}
 		return object;
