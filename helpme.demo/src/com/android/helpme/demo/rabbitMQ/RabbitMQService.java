@@ -83,7 +83,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 
 	@Override
 	public void onCreate() {
-		mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+//		mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 		factory  = new ConnectionFactory();
 		factory.setHost(URL);
 		subscribedChannels = new HashMap<String, Channel>();
@@ -121,14 +121,14 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 		String text = getString(R.string.waitingtext);
 		String title = getString(R.string.waitingtitle);
 
-		showNotification(text,title);
+//		showNotification(text,title);
 		return START_STICKY;
 	}
 
 	@Override
 	public void onDestroy() {
 		Log.i(LOGTAG, getString(R.string.local_service_stopped));
-		mNM.cancelAll();
+//		mNM.cancelAll();
 		runThread(disconnect());
 		while (connected) {
 			;
@@ -152,17 +152,17 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 		long[] pattern = {0,200,200,200,200};
 		vibrator.vibrate(pattern, -1);
 
-		Notification notification = new Notification.Builder(this)
-		.setContentTitle(title)
-		.setContentText(text)
-		.setSmallIcon(R.drawable.ic_launcher)
+//		Notification notification = new Notification.Builder(this)
+//		.setContentTitle(title)
+//		.setContentText(text)
+//		.setSmallIcon(R.drawable.ic_launcher)
 //		.setContentIntent(contentIntent)
-		.setOngoing(true)
-		.build();
-
-
-		// Send the notification.
-		mNM.notify(NOTIFICATION, notification);
+//		.setOngoing(true)
+//		.build();
+//
+//
+//		// Send the notification.
+//		mNM.notify(NOTIFICATION, notification);
 	}
 
 	@Override
