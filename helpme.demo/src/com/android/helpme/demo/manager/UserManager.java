@@ -5,11 +5,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.json.JSONException;
 import org.json.simple.JSONObject;
@@ -48,7 +50,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	private static UserManager manager;
 	private Context context;
 	private InAppMessage message;
-	private HashMap<String,User> users;
+	private ConcurrentHashMap<String,User> users;
 	private UserInterface thisUser;
 	private boolean userSet;
 	private Timer timer;
@@ -62,7 +64,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	}
 
 	private UserManager() {
-		users = new HashMap<String, User>();
+		users = new ConcurrentHashMap<String, User>();
 		userSet = false;
 		timer = new Timer();
 	}
@@ -134,7 +136,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 			users.get(user.getId()).updatePosition(user.getPosition());
 			return false;
 		}else{
-			users.put(user.getId(), user);
+			users.putIfAbsent(user.getId(), user);
 			return true;
 		}
 	}
@@ -361,18 +363,17 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 			@Override
 			public void run() {
 				boolean changed =false;
-				synchronized (users) {
-					Set<String> set = users.keySet();
-					for (String key : set) {
-						User user =  users.get(key);
-						long timeOfLastMessage =user.getPosition().getMeasureDateTime();
-						long currentTime= System.currentTimeMillis();
-						if(currentTime  - timeOfLastMessage >= TIMEOUT){
+				Enumeration<String> keys= users.keys();
+				while (keys.hasMoreElements()) {
+					String key = (String) keys.nextElement();
+					User user =  users.get(key);
+					long timeOfLastMessage =user.getPosition().getMeasureDateTime();
+					long currentTime= System.currentTimeMillis();
+					if(currentTime  - timeOfLastMessage >= TIMEOUT){
 
-							users.remove(key);
+						users.remove(key);
 
-							changed = true;
-						}
+						changed = true;
 					}
 				}
 
