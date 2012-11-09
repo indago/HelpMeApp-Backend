@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.json.JSONException;
 import org.json.simple.JSONObject;
@@ -42,13 +44,15 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	private static final String LOGTAG = UserManager.class.getSimpleName();
 	private static final String USER_PROPERTIES = "user.properties";
 	private static final String CHOOSEN_USER_PREF = "choosen_user_preference";
+	private static final long TIMEOUT = 60000;
 	private static UserManager manager;
 	private Context context;
 	private InAppMessage message;
 	private HashMap<String,User> users;
 	private UserInterface thisUser;
 	private boolean userSet;
-	private enum pictures {john,emperor, curie,senior1,senior2,helfer1};
+	private Timer timer;
+	private enum pictures {john,emperor, curie,senior1,senior2,helfer1,helfer2};
 
 	public static UserManager getInstance() {
 		if (manager == null) {
@@ -60,6 +64,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	private UserManager() {
 		users = new HashMap<String, User>();
 		userSet = false;
+		timer = new Timer();
 	}
 
 	public boolean isUserSet(){
@@ -122,6 +127,9 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	 */
 	@Override
 	public boolean addUser(User user) {
+		if (users.isEmpty()) {
+			timer.scheduleAtFixedRate(createTimerTask(), TIMEOUT, TIMEOUT);
+		}
 		if (users.containsKey(user.getId())) {
 			users.get(user.getId()).updatePosition(user.getPosition());
 			return false;
@@ -220,6 +228,9 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 			break;
 		case helfer1:
 			object.put(key, R.drawable.helfer1);
+			break;
+		case helfer2:
+			//		object.put(key, R.drawable.helfer2);
 			break;
 
 		default:
@@ -342,5 +353,33 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	@Override
 	public UserInterface getUserById(String id) {
 		return users.get(id);
+	}
+
+	private TimerTask createTimerTask(){
+		return new TimerTask() {
+
+			@Override
+			public void run() {
+				boolean changed =false;
+				synchronized (users) {
+					Set<String> set = users.keySet();
+					for (String key : set) {
+						User user =  users.get(key);
+						long timeOfLastMessage =user.getPosition().getMeasureDateTime();
+						long currentTime= System.currentTimeMillis();
+						if(currentTime  - timeOfLastMessage >= TIMEOUT){
+
+							users.remove(key);
+
+							changed = true;
+						}
+					}
+				}
+
+				if (changed) {
+					fireMessageFromManager(getUsers(), InAppMessageType.CHANGED);
+				}
+			}
+		};
 	}
 }

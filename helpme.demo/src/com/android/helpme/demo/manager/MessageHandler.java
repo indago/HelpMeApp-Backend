@@ -91,7 +91,10 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 				if (userManagerInterface.getThisUser().getHelfer()) {
 					handleIncomingUserAsHelper(user);
 				}else {
-					handleIncomingUserAsHelperSeeker(user);
+					if (user.getHelfer()) {
+						handleIncomingUserAsHelperSeeker(user);
+					}
+					
 				}
 			}
 			break;
@@ -193,6 +196,13 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 			if (getDrawManager(DRAWMANAGER_TYPE.LOGIN) != null) {
 				getDrawManager(DRAWMANAGER_TYPE.LOGIN).drawThis(message.getObject());
 			}
+			break;
+			
+		case CHANGED:
+			if (getDrawManager(DRAWMANAGER_TYPE.LIST) != null) {
+				getDrawManager(DRAWMANAGER_TYPE.LIST).drawThis(message.getObject());
+			}
+			
 			break;
 
 		default:

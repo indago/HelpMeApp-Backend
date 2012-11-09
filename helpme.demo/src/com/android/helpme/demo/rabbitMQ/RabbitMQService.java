@@ -23,6 +23,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.os.Vibrator;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -37,6 +38,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 	private ShutdownReactor shutdownReactor;
 	private RabbitMQService service;
 	private Class<Activity> activity;
+	private Vibrator vibrator;
 
 	public static final String EXCHANGE_NAME = "exchange_name",MESSAGE = "message",DATA_STRING = "data_string", EXCHANGE_TYPE = "exchange_type",TEXT = "text",TITLE = "title";
 	public static final String MESSENGER = "MESSENGER", ACTIVITY = "ACTIVITY";
@@ -87,6 +89,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 		subscribedChannels = new HashMap<String, Channel>();
 		shutdownReactor = new ShutdownReactor(subscribedChannels);
 		service = this;
+		vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 	}
 
 	@Override
@@ -146,6 +149,8 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 //		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
 //				new Intent(this, SwitcherActivity.class), 0);
 
+		long[] pattern = {0,200,200,200,200};
+		vibrator.vibrate(pattern, -1);
 
 		Notification notification = new Notification.Builder(this)
 		.setContentTitle(title)
