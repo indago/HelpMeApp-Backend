@@ -310,7 +310,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 		editor.putString(User.ID, thisUser.getId());
 		editor.putString(User.HANDYNUMBER, thisUser.getHandyNr());
 		editor.putString(User.NAME, thisUser.getName());
-		editor.putInt(User.PICTURE, thisUser.getPicture());
+		editor.putString(User.PICTURE, thisUser.getPicture());
 
 		return editor.commit();
 	}
@@ -323,7 +323,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 		User user = new User(preferences.getString(User.ID,null),
 				preferences.getString(User.NAME, null), 
 				preferences.getBoolean(User.HELFER, false), 
-				preferences.getInt(User.PICTURE, Integer.MIN_VALUE), 
+				preferences.getString(User.PICTURE, null), 
 				preferences.getInt(User.AGE, Integer.MIN_VALUE), 
 				preferences.getString(User.HANDYNUMBER, null));
 		if (user.getId() == null) {
