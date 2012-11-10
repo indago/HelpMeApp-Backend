@@ -193,7 +193,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 					for (Object key : set) {
 						String string = (String) properties.get(key);
 						JSONObject object = (JSONObject) parser.parse(string);
-						object = setPicture(object,context);
+//						object = setPicture(object,context);
 						list.add(new User(object));
 					}
 					Log.i(LOGTAG, "The properties are now loaded");
