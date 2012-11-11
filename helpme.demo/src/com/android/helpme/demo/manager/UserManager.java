@@ -6,19 +6,16 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -27,7 +24,6 @@ import android.content.res.Resources;
 import android.provider.Settings.Secure;
 import android.util.Log;
 
-import com.android.helpme.demo.R;
 import com.android.helpme.demo.interfaces.UserInterface;
 import com.android.helpme.demo.interfaces.UserManagerInterface;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
@@ -50,14 +46,17 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	private static UserManager manager;
 	private Context context;
 	private InAppMessage message;
-	private ConcurrentHashMap<String,User> users;
+	private ConcurrentHashMap<String, User> users;
 	private UserInterface thisUser;
 	private boolean userSet;
 	private Timer timer;
-	public enum pictures {john,emperor, curie,senior1,senior2,senior3,helper1,helper2,helper3};
+
+	public enum pictures {
+		john, emperor, curie, senior1, senior2, senior3, helper1, helper2, helper3
+	};
 
 	public static UserManager getInstance() {
-		if (manager == null) {
+		if(manager == null) {
 			manager = new UserManager();
 		}
 		return manager;
@@ -69,7 +68,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 		timer = new Timer();
 	}
 
-	public boolean isUserSet(){
+	public boolean isUserSet() {
 		return userSet;
 	}
 
@@ -84,19 +83,19 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	}
 
 	private void setThisUser(UserInterface user, String id) {
-		if (!userSet) {
+		if(!userSet) {
 			this.thisUser = new User(id, user.getName(), user.isHelper(), user.getPicture(), user.getAge(), user.getHandyNr());
-			userSet =true;
+			userSet = true;
 		}
 	}
 
 	@Override
-	public Runnable setThisUser(final UserInterface userInterface,final Context context) {
+	public Runnable setThisUser(final UserInterface userInterface, final Context context) {
 		return new Runnable() {
 
 			@Override
 			public void run() {
-				String android_id = Secure.getString(context.getContentResolver(),Secure.ANDROID_ID); 
+				String android_id = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
 				setThisUser(userInterface, android_id);
 				ThreadPool.runTask(saveUserChoice(context));
 				ThreadPool.runTask(clear());
@@ -124,53 +123,67 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 		return manager;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.android.helpme.demo.manager.UserManagerInterface#addUser(com.android.helpme.demo.utils.User)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.android.helpme.demo.manager.UserManagerInterface#addUser(com.android
+	 * .helpme.demo.utils.User)
 	 */
 	@Override
 	public boolean addUser(User user) {
-		if (users.isEmpty()) {
+		if(users.isEmpty()) {
 			timer.scheduleAtFixedRate(createTimerTask(), TIMEOUT, TIMEOUT);
 		}
-		if (users.containsKey(user.getId())) {
+		if(users.containsKey(user.getId())) {
 			users.get(user.getId()).updatePosition(user.getPosition());
 			return false;
-		}else{
+		} else {
 			users.putIfAbsent(user.getId(), user);
 			return true;
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.android.helpme.demo.manager.UserManagerInterface#getUsers()
 	 */
 	@Override
 	public ArrayList<User> getUsers() {
 		ArrayList<User> list = new ArrayList<User>();
 		Set<String> keys = users.keySet();
-		for (String key : keys) {
+		for(String key : keys) {
 			list.add(users.get(key));
 		}
 		return list;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.android.helpme.demo.manager.UserManagerInterface#getUser(java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.android.helpme.demo.manager.UserManagerInterface#getUser(java.lang
+	 * .String)
 	 */
 	@Override
 	public UserInterface getUserByName(String name) {
 		Set<String> keys = users.keySet();
-		for (String key : keys) {
+		for(String key : keys) {
 			User user = users.get(key);
-			if (user.getName().equalsIgnoreCase(name)) {
+			if(user.getName().equalsIgnoreCase(name)) {
 				return user;
 			}
 		}
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.android.helpme.demo.manager.UserManagerInterface#readUserFromProperty(android.app.Activity)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.android.helpme.demo.manager.UserManagerInterface#readUserFromProperty
+	 * (android.app.Activity)
 	 */
 	@Override
 	public Runnable readUserFromProperty(final Context context) {
@@ -190,67 +203,69 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 					properties.load(reader);
 					Set<Object> set = properties.keySet();
 					ArrayList<User> list = new ArrayList<User>();
-					for (Object key : set) {
+					for(Object key : set) {
 						String string = (String) properties.get(key);
 						JSONObject object = (JSONObject) parser.parse(string);
-						object = setPicture(object,context);
+//						object = setPicture(object, context);
 						list.add(new User(object));
 					}
 					Log.i(LOGTAG, "The properties are now loaded");
 					fireMessageFromManager(list, InAppMessageType.RECEIVED_DATA);
-				} catch (IOException e) {
+				} catch(IOException e) {
 					fireError(e);
-				} catch (ParseException e) {
+				} catch(ParseException e) {
 					fireError(e);
 				}
 			}
 		};
 	}
 
-	private JSONObject setPicture(JSONObject object, Context context){
+	private JSONObject setPicture(JSONObject object, Context context) {
 		String key = User.PICTURE;
 		pictures name = null;
-		try{
-			name = pictures.valueOf((String)object.get(key));
-		}catch(IllegalArgumentException exception){
+		try {
+			name = pictures.valueOf((String) object.get(key));
+		} catch(IllegalArgumentException exception) {
 			name = pictures.john;
 		}
-		switch (name) {
-		case curie:
-			object.put(key, pictures.curie.ordinal());
-			break;
-		case emperor:
-			object.put(key, pictures.emperor.ordinal());
-			break;
-		case senior1:
-			object.put(key, pictures.senior1.ordinal());
-			break;
-		case senior2:
-			object.put(key, pictures.senior2.ordinal());
-			break;
-		case senior3:
-			object.put(key, pictures.senior3.ordinal());
-			break;
-		case helper1:
-			object.put(key, pictures.helper1.ordinal());
-			break;
-		case helper2:
-			object.put(key, pictures.helper2.ordinal());
-			break;
-		case helper3:
-			object.put(key, pictures.helper3.ordinal());
-			break;
+		switch(name) {
+			case curie:
+				object.put(key, pictures.curie.ordinal());
+				break;
+			case emperor:
+				object.put(key, pictures.emperor.ordinal());
+				break;
+			case senior1:
+				object.put(key, pictures.senior1.ordinal());
+				break;
+			case senior2:
+				object.put(key, pictures.senior2.ordinal());
+				break;
+			case senior3:
+				object.put(key, pictures.senior3.ordinal());
+				break;
+			case helper1:
+				object.put(key, pictures.helper1.ordinal());
+				break;
+			case helper2:
+				object.put(key, pictures.helper2.ordinal());
+				break;
+			case helper3:
+				object.put(key, pictures.helper3.ordinal());
+				break;
 
-		default:
-			object.put(key, pictures.john.ordinal());
-			break;
+			default:
+				object.put(key, pictures.john.ordinal());
+				break;
 		}
 		return object;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.android.helpme.demo.manager.interfaces.UserManagerInterface#readUserChoice(android.content.Context)
+	 * 
+	 * @see com.android.helpme.demo.manager.interfaces.UserManagerInterface#
+	 * readUserChoice(android.content.Context)
 	 */
 	@Override
 	public Runnable readUserChoice(final Context context) {
@@ -267,7 +282,9 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.android.helpme.demo.manager.interfaces.UserManagerInterface#saveUserChoice(android.content.Context)
+	 * 
+	 * @see com.android.helpme.demo.manager.interfaces.UserManagerInterface#
+	 * saveUserChoice(android.content.Context)
 	 */
 	@Override
 	public Runnable saveUserChoice(final Context context) {
@@ -283,7 +300,9 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.android.helpme.demo.manager.interfaces.UserManagerInterface#deleteUserChoice(android.content.Context)
+	 * 
+	 * @see com.android.helpme.demo.manager.interfaces.UserManagerInterface#
+	 * deleteUserChoice(android.content.Context)
 	 */
 	@Override
 	public Runnable deleteUserChoice(final Context context) {
@@ -298,13 +317,14 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	}
 
 	/**
-	 * saves the user as 
+	 * saves the user as
+	 * 
 	 * @param preferences
 	 * @param user
 	 * @return
 	 */
-	private boolean writeUserToSharedPreference(SharedPreferences preferences){
-		Editor editor=  preferences.edit();
+	private boolean writeUserToSharedPreference(SharedPreferences preferences) {
+		Editor editor = preferences.edit();
 		editor.putBoolean(User.HELFER, thisUser.isHelper());
 		editor.putInt(User.AGE, thisUser.getAge());
 		editor.putString(User.ID, thisUser.getId());
@@ -314,19 +334,20 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 
 		return editor.commit();
 	}
+
 	/**
 	 * 
 	 * @param preferences
 	 * @return
 	 */
-	private boolean readUserFromSharedPreference(SharedPreferences preferences){
-		User user = new User(preferences.getString(User.ID,null),
-				preferences.getString(User.NAME, null), 
-				preferences.getBoolean(User.HELFER, false), 
-				preferences.getString(User.PICTURE, null), 
-				preferences.getInt(User.AGE, Integer.MIN_VALUE), 
-				preferences.getString(User.HANDYNUMBER, null));
-		if (user.getId() == null) {
+	private boolean readUserFromSharedPreference(SharedPreferences preferences) {
+		User user = new User(preferences.getString(User.ID, null),
+								preferences.getString(User.NAME, null),
+								preferences.getBoolean(User.HELFER, false),
+								preferences.getString(User.PICTURE, "NIX"),
+								preferences.getInt(User.AGE, Integer.MIN_VALUE),
+								preferences.getString(User.HANDYNUMBER, null));
+		if(user.getId() == null) {
 			thisUser = null;
 			return false;
 		}
@@ -339,7 +360,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	 * @param preferences
 	 * @return
 	 */
-	private boolean deleteUserFromSharedPreference(SharedPreferences preferences){
+	private boolean deleteUserFromSharedPreference(SharedPreferences preferences) {
 		Editor editor = preferences.edit();
 		editor.clear();
 		return editor.commit();
@@ -350,7 +371,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 
 			@Override
 			public void run() {
-				synchronized (users) {
+				synchronized(users) {
 					users.clear();
 				}
 			}
@@ -363,19 +384,19 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 		return users.get(id);
 	}
 
-	private TimerTask createTimerTask(){
+	private TimerTask createTimerTask() {
 		return new TimerTask() {
 
 			@Override
 			public void run() {
-				boolean changed =false;
-				Enumeration<String> keys= users.keys();
-				while (keys.hasMoreElements()) {
+				boolean changed = false;
+				Enumeration<String> keys = users.keys();
+				while(keys.hasMoreElements()) {
 					String key = (String) keys.nextElement();
-					User user =  users.get(key);
-					long timeOfLastMessage =user.getPosition().getMeasureDateTime();
-					long currentTime= System.currentTimeMillis();
-					if(currentTime  - timeOfLastMessage >= TIMEOUT){
+					User user = users.get(key);
+					long timeOfLastMessage = user.getPosition().getMeasureDateTime();
+					long currentTime = System.currentTimeMillis();
+					if(currentTime - timeOfLastMessage >= TIMEOUT) {
 
 						users.remove(key);
 
@@ -383,7 +404,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 					}
 				}
 
-				if (changed) {
+				if(changed) {
 					fireMessageFromManager(getUsers(), InAppMessageType.CHANGED);
 				}
 			}
