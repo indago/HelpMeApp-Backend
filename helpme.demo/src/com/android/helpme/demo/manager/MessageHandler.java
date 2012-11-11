@@ -20,7 +20,7 @@ import com.android.helpme.demo.utils.position.Position;
  * @author Andreas Wieland
  * 
  */
-public abstract class MessageHandler extends AbstractMessageSystem implements MessageHandlerInterface{
+public abstract class MessageHandler extends AbstractMessageSystem implements MessageHandlerInterface {
 
 	abstract protected boolean reloadDatabase();
 
@@ -31,6 +31,7 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 
 	/**
 	 * Handels the Messages form the {@link PositionManager}
+	 * 
 	 * @param message
 	 */
 	protected void handlePositionMessage(InAppMessage message) {
@@ -59,13 +60,14 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 	}
 
 	/**
-	 * Handels the Messages form the {@link RabbitMQManager} 
+	 * Handels the Messages form the {@link RabbitMQManager}
+	 * 
 	 * @param message
 	 */
 	protected void handleRabbitMQMessages(InAppMessage message) {
 		switch (message.getType()) {
 		case UNBOUND_FROM_SERVICE:
-			//TODO
+			// TODO
 			break;
 		case BOUND_TO_SERVICE:
 			run(rabbitMQManagerInterface.connect());
@@ -90,11 +92,11 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 
 				if (userManagerInterface.getThisUser().isHelper()) {
 					handleIncomingUserAsHelper(user);
-				}else {
+				} else {
 					if (user.isHelper()) {
 						handleIncomingUserAsHelperSeeker(user);
 					}
-					
+
 				}
 			}
 			break;
@@ -106,10 +108,12 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 	}
 
 	/**
-	 * if this user is a Helper this Method will be called and starts the List {@link DrawManagerInterface}
+	 * if this user is a Helper this Method will be called and starts the List
+	 * {@link DrawManagerInterface}
+	 * 
 	 * @param incomingUser
 	 */
-	private void handleIncomingUserAsHelper(User incomingUser){
+	private void handleIncomingUserAsHelper(User incomingUser) {
 		if (userManagerInterface.addUser(incomingUser)) {
 			run(rabbitMQManagerInterface.showNotification(incomingUser));
 		}
@@ -123,33 +127,39 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 			if (historyManagerInterface.getTask().isUserInShortDistance()) {
 				getDrawManager(DRAWMANAGER_TYPE.MAP).drawThis(historyManagerInterface.getTask());
 
-			}else{
+			} else {
 				getDrawManager(DRAWMANAGER_TYPE.MAP).drawThis(incomingUser);
 			}
 		} else {
-			getDrawManager(DRAWMANAGER_TYPE.LIST).drawThis(incomingUser);
+			if (getDrawManager(DRAWMANAGER_TYPE.LIST) != null) {
+				getDrawManager(DRAWMANAGER_TYPE.LIST).drawThis(incomingUser);
+			}
+
 		}
 	}
 
 	/**
-	 * if this user is a Help Seeker this Method will be called and starts the Map {@link DrawManagerInterface}
+	 * ddddddddddddddd if this user is a Help Seeker this Method will be called
+	 * and starts the Map {@link DrawManagerInterface}
+	 * 
 	 * @param incomingUser
 	 */
-	private void handleIncomingUserAsHelperSeeker(User incomingUser){
+	private void handleIncomingUserAsHelperSeeker(User incomingUser) {
 		userManagerInterface.addUser(incomingUser);
 		historyManagerInterface.getTask().updatePosition(incomingUser);
 
 		if (getDrawManager(DRAWMANAGER_TYPE.HELPERCOMMING) != null) {
 			if (historyManagerInterface.getTask().isUserInShortDistance()) {
 				getDrawManager(DRAWMANAGER_TYPE.HELPERCOMMING).drawThis(historyManagerInterface.getTask());
-			}
-			else {
+			} else {
 				getDrawManager(DRAWMANAGER_TYPE.HELPERCOMMING).drawThis(incomingUser);
 			}
 
 		} else {
+			if (getDrawManager(DRAWMANAGER_TYPE.SEEKER) != null) {
+				getDrawManager(DRAWMANAGER_TYPE.SEEKER).drawThis(incomingUser);
+			}
 
-			getDrawManager(DRAWMANAGER_TYPE.SEEKER).drawThis(incomingUser);
 		}
 	}
 
@@ -164,7 +174,7 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 				getDrawManager(DRAWMANAGER_TYPE.HISTORY).drawThis(message.getObject());
 			}
 			break;
-			
+
 		case HISTORY:
 			if (getDrawManager(DRAWMANAGER_TYPE.HISTORY) != null) {
 				getDrawManager(DRAWMANAGER_TYPE.HISTORY).drawThis(message.getObject());
@@ -179,6 +189,7 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 
 	/**
 	 * Handles Messages from the {@link UserManager}
+	 * 
 	 * @param message
 	 */
 	protected void handleUserMessages(InAppMessage message) {
@@ -199,12 +210,12 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 				getDrawManager(DRAWMANAGER_TYPE.LOGIN).drawThis(message.getObject());
 			}
 			break;
-			
+
 		case CHANGED:
 			if (getDrawManager(DRAWMANAGER_TYPE.LIST) != null) {
 				getDrawManager(DRAWMANAGER_TYPE.LIST).drawThis(message.getObject());
 			}
-			
+
 			break;
 
 		default:
