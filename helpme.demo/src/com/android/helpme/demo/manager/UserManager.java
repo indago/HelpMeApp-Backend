@@ -344,7 +344,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 		User user = new User(preferences.getString(User.ID, null),
 								preferences.getString(User.NAME, null),
 								preferences.getBoolean(User.HELFER, false),
-								preferences.getString(User.PICTURE, "NIX"),
+								preferences.getString(User.PICTURE, null),
 								preferences.getInt(User.AGE, Integer.MIN_VALUE),
 								preferences.getString(User.HANDYNUMBER, null));
 		if(user.getId() == null) {
