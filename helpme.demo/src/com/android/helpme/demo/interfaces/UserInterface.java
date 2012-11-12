@@ -4,10 +4,13 @@ import org.json.simple.JSONObject;
 
 import android.content.SharedPreferences;
 
+import com.android.helpme.demo.utils.User;
 import com.android.helpme.demo.utils.position.Position;
 import com.google.android.maps.GeoPoint;
 
 public interface UserInterface {
+	
+	public UserInterface getUser(JSONObject object);
 	
 	public String getId();
 
@@ -23,7 +26,7 @@ public interface UserInterface {
 	
 	public int getAge();
 	
-	public String getHandyNr();
+	public String getGender();
 
 	public void setPosition(Position position);
 

@@ -84,7 +84,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 
 	private void setThisUser(UserInterface user, String id) {
 		if(!userSet) {
-			this.thisUser = new User(id, user.getName(), user.isHelper(), user.getPicture(), user.getAge(), user.getHandyNr());
+			this.thisUser = new User(id, user.getName(), user.isHelper(), user.getPicture(), user.getAge(), user.getGender());
 			userSet = true;
 		}
 	}
@@ -328,7 +328,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 		editor.putBoolean(User.HELFER, thisUser.isHelper());
 		editor.putInt(User.AGE, thisUser.getAge());
 		editor.putString(User.ID, thisUser.getId());
-		editor.putString(User.HANDYNUMBER, thisUser.getHandyNr());
+		editor.putString(User.GENDER, thisUser.getGender());
 		editor.putString(User.NAME, thisUser.getName());
 		editor.putString(User.PICTURE, thisUser.getPicture());
 
@@ -346,7 +346,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 								preferences.getBoolean(User.HELFER, false),
 								preferences.getString(User.PICTURE, null),
 								preferences.getInt(User.AGE, Integer.MIN_VALUE),
-								preferences.getString(User.HANDYNUMBER, null));
+								preferences.getString(User.GENDER, null));
 		if(user.getId() == null) {
 			thisUser = null;
 			return false;

@@ -26,7 +26,7 @@ public class User implements UserInterface {
 	public static final String PICTURE = "Picture";
 	public static final String ID = "id";
 	public static final String MESSAGE = "Message";
-	public static final String HANDYNUMBER = "HandyNumber";
+	public static final String GENDER = "Gender";
 	public static final String AGE = "Age";
 
 	private String name;
@@ -35,15 +35,15 @@ public class User implements UserInterface {
 	private Position position;
 	private String pic; //TODO
 	private Integer age;
-	private String handyNr;
+	private String gender;
 
-	public User(String id,String name, Boolean helfer,String pic,Integer age, String handyNr) {
+	public User(String id,String name, Boolean helfer,String pic,Integer age, String gender) {
 		this.name = name;
 		this.helfer = helfer;
 		this.id = id;
 		this.pic = pic;
 		this.age = age;
-		this.handyNr = handyNr;
+		this.gender = gender;
 	}
 
 	public User(JSONObject object) {
@@ -52,7 +52,7 @@ public class User implements UserInterface {
 		this.id = (String) object.get(ID);
 		this.pic = (String) object.get(PICTURE);
 		this.age = new Integer(object.get(AGE).toString());
-		this.handyNr  = ((String)object.get(HANDYNUMBER));
+		this.gender  = ((String)object.get(GENDER));
 		if (object.get(POSITION) != null) {
 			this.position = new Position(object);
 		}
@@ -112,8 +112,8 @@ public class User implements UserInterface {
 	 * (non-Javadoc)
 	 * @see com.android.helpme.demo.utils.UserInterface#getHandyNr()
 	 */
-	public String getHandyNr() {
-		return handyNr;
+	public String getGender() {
+		return gender;
 	}
 
 	/*
@@ -144,7 +144,7 @@ public class User implements UserInterface {
 		object.put(ID, id);
 		object.put(PICTURE, pic);
 		object.put(AGE, age);
-		object.put(HANDYNUMBER, handyNr);
+		object.put(GENDER, gender);
 		return object;
 	}
 	/*
@@ -200,5 +200,10 @@ public class User implements UserInterface {
 	@Override
 	public void setPicture(String pic) {
 		this.pic = pic;
+	}
+	
+	@Override
+	public UserInterface getUser(JSONObject object) {
+		return new User(object);
 	}
 }
