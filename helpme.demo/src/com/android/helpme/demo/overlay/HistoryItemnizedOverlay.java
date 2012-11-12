@@ -15,6 +15,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.view.MotionEvent;
 import android.view.Window;
 import android.widget.TextView;
 
@@ -54,10 +55,10 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 	}
 
 	@Override
-	protected OverlayItem createItem(int i) {
+	protected HistoryOverlayItem createItem(int i) {
 		return items.get(i);
 	}
-
+	
 	@Override
 	public int size() {
 		return items.size();
@@ -66,11 +67,22 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 	public ArrayList<HistoryOverlayItem> getItems() {
 		return items;
 	}
+	
+//	@Override
+//	public boolean onTouchEvent(MotionEvent arg0, MapView arg1) {
+//		HistoryOverlayItem item = items.get(0);
+//		if (item != null) {
+//			buildDialog(item).show();
+//			return true;
+//
+//		}
+//		return false;
+//	}
 
-	@Override
-	public boolean onTap(GeoPoint arg0, MapView arg1) {
-		return false;
-	}
+//	@Override
+//	public boolean onTap(GeoPoint arg0, MapView arg1) {
+//		return false;
+//	}
 
 	@Override
 	protected boolean onTap(int index) {
@@ -88,8 +100,8 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 		UserInterface userInterface = new User((JSONObject) object.get(Task.USER));
 		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
 
-		Dialog dialog = dialogBuilder.create();
-		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+		Dialog dialog = dialogBuilder.show();
+//		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		dialog.setContentView(R.layout.custom_dialog);
 		TextView text; String string;
 
@@ -107,24 +119,25 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 
 
 		text = (TextView) dialog.findViewById(R.id.tv_help_ee_age);
-		string = context.getString(R.string.dialog_date);
+		string = context.getString(R.string.dialog_age);
 		string = string.replace("[age]", new Integer(userInterface.getAge()).toString());
 		text.setText(string);
 
 		text = (TextView) dialog.findViewById(R.id.tv_help_ee_gender);
-		string = context.getString(R.string.dialog_date);
+		string = context.getString(R.string.dialog_gender);
 		string = string.replace("[gender]", (userInterface.getGender()));
 		text.setText(string);
 
 		text = (TextView) dialog.findViewById(R.id.tv_help_ee_time);
+		string = context.getString(R.string.dialog_time);
 		Long stoptime = (Long) object.get(Task.STOP_TIME);
 		Long starttime = date.getTime();
 
 		long diff = stoptime - starttime;
-		long dsecs = diff % (60 * 1000);
+		long dsecs = (diff / 1000) % (60 * 1000);
 		long dminutes = diff / (60 * 1000);
 		
-		string = string.replace("[date]", "" +dminutes + "min. " +dsecs +"sec.");
+		string = string.replace("[time]", "" +dminutes + "min. " +dsecs +"sec.");
 		text.setText(string);
 
 		return dialog;

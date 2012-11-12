@@ -55,11 +55,6 @@ public class MapItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 	}
 	
 	@Override
-	public boolean onTap(GeoPoint arg0, MapView arg1) {
-		return false;
-	}
-
-	@Override
 	protected boolean onTap(int index) {
 		OverlayItem item = items.get(index);
 		if (item != null) {

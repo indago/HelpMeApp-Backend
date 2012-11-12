@@ -5,6 +5,7 @@ package com.android.helpme.demo.rabbitMQ;
 
 import java.util.HashMap;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ShutdownListener;
@@ -15,11 +16,11 @@ import com.rabbitmq.client.ShutdownSignalException;
  *
  */
 public class ShutdownReactor implements ShutdownListener {
-	private HashMap<String,Channel> subscribedChannels;
+	private ConcurrentHashMap<String,Channel> subscribedChannels;
 	/**
 	 * 
 	 */
-	public ShutdownReactor(HashMap<String, Channel> map) {
+	public ShutdownReactor(ConcurrentHashMap<String, Channel> map) {
 		this.subscribedChannels = map;
 	}
 

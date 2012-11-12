@@ -3,6 +3,7 @@ package com.android.helpme.demo.rabbitMQ;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.android.helpme.demo.R;
 import com.android.helpme.demo.interfaces.RabbitMQSerivceInterface;
@@ -33,7 +34,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 	private NotificationManager mNM;
 	private ConnectionFactory factory;
 	private Connection connection;
-	private HashMap<String,Channel> subscribedChannels;
+	private ConcurrentHashMap<String,Channel> subscribedChannels;
 	private Boolean connected = false;
 	private ShutdownReactor shutdownReactor;
 	private RabbitMQService service;
@@ -86,7 +87,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 //		mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 		factory  = new ConnectionFactory();
 		factory.setHost(URL);
-		subscribedChannels = new HashMap<String, Channel>();
+		subscribedChannels = new ConcurrentHashMap<String, Channel>();
 		shutdownReactor = new ShutdownReactor(subscribedChannels);
 		service = this;
 		vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
@@ -248,7 +249,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 
 					// we define what happens if we recieve a new Message
 					channel.basicConsume(queueName,new RabbitMQConsumer(channel, service));
-					subscribedChannels.put(exchangeName, channel);
+					subscribedChannels.putIfAbsent(exchangeName, channel);
 				} catch (IOException e) {
 					Log.e(LOGTAG, e.toString());
 				}
@@ -268,7 +269,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 						channel.close(0,exchangeName);
 					}catch(AlreadyClosedException e){
 						Log.e(LOGTAG, e.toString());
-						channel.notifyListeners();
+						subscribedChannels.remove(exchangeName);
 					} catch (IOException e) {
 						Log.e(LOGTAG, e.toString());
 					} 
