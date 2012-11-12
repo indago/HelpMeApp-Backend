@@ -6,7 +6,7 @@
     android:background="@drawable/background" >
 
       <ImageView
-        android:id="@+id/iv_seperator1"
+        android:id="@+id/iv_seperator0"
         android:layout_width="match_parent"
         android:layout_height="4dp"
         android:layout_marginRight="10dp"
@@ -42,7 +42,7 @@
         android:textSize="8pt" />
 
     <ImageView
-        android:id="@+id/iv_seperator1"
+        android:id="@+id/iv_seperator2"
         android:layout_width="match_parent"
         android:layout_height="4dp"
         android:layout_marginRight="10dp"
@@ -60,7 +60,7 @@
         android:textSize="8pt" />
 
     <ImageView
-        android:id="@+id/iv_seperator1"
+        android:id="@+id/iv_seperator3"
         android:layout_width="match_parent"
         android:layout_height="4dp"
         android:layout_marginRight="10dp"
@@ -78,7 +78,7 @@
         android:textSize="8pt" />
 
     <ImageView
-        android:id="@+id/iv_seperator1"
+        android:id="@+id/iv_seperator4"
         android:layout_width="match_parent"
         android:layout_height="4dp"
         android:layout_marginRight="10dp"
@@ -96,7 +96,7 @@
         android:textSize="8pt" />
 
     <ImageView
-        android:id="@+id/iv_seperator1"
+        android:id="@+id/iv_seperator5"
         android:layout_width="match_parent"
         android:layout_height="4dp"
         android:layout_marginRight="10dp"
