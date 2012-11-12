@@ -1,0 +1,13 @@
+<resources>
+
+    <string name="waitingtext">waiting for Help requests</string>
+    <string name="waitingtitle">Waiting...</string>
+    <string name="local_service_started">service started</string>
+    <string name="local_service_stopped">service stopped</string>
+
+    <string name="dialog_name"><font color="#00a9e8">Name:</font>[name]</string>
+    <string name="dialog_age"><font color="#00a9e8">Age:</font>[age]</string>
+    <string name="dialog_gender"><font color="#00a9e8">Gender:</font>[gender]</string>
+    <string name="dialog_date"><font color="#00a9e8">Date:</font>[date]</string>
+    <string name="dialog_time"><font color="#00a9e8">Time:</font>[time]</string>
+</resources>

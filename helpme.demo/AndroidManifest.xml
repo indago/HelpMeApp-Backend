@@ -1,0 +1,24 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.android.helpme.demo"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
+    <uses-sdk
+        android:minSdkVersion="16"
+        android:targetSdkVersion="15" />
+
+    <application>
+        <uses-library android:name="com.google.android.maps" />
+        <service
+            android:name=".rabbitMQ.RabbitMQService"
+            android:enabled="true"
+            android:exported="true"
+            android:process=":remote" >
+        </service>
+    </application>
+
+</manifest>
