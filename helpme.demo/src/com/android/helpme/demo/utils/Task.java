@@ -29,7 +29,7 @@ public class Task extends Observable{
 	public static final int LONGDISTANCE = 1000;
 	public static final int MIDDISTANCE = 100;
 	public static final int SHORTDISTANCE = 10;
-	public static final long TIMERDELAY = 60000;
+	public static final long TIMERDELAY = 15000;
 	private UserInterface user;
 	private Timer timer;
 	private boolean answered;
