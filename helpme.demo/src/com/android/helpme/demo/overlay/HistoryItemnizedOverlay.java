@@ -15,6 +15,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.text.Html;
 import android.view.MotionEvent;
 import android.view.Window;
 import android.widget.TextView;
@@ -108,25 +109,33 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 		text = (TextView) dialog.findViewById(R.id.tv_help_ee_name);
 		string = context.getString(R.string.dialog_name);
 		string = string.replace("[name]", userInterface.getName());
-		text.setText(string);
+		string = string.replace("[font]", "<font color=\"#00a9e8\">");
+		string = string.replace("[/font]", "</font>");
+		text.setText(Html.fromHtml(string));
 
 		text = (TextView) dialog.findViewById(R.id.tv_help_ee_date);
 		string = context.getString(R.string.dialog_date);
 		Date date = new Date((Long) object.get(Task.START_TIME));
 		DateFormat dateFormat = android.text.format.DateFormat.getDateFormat(context);
 		string = string.replace("[date]", dateFormat.format(date));
-		text.setText(string);
+		string = string.replace("[font]", "<font color=\"#00a9e8\">");
+		string = string.replace("[/font]", "</font>");
+		text.setText(Html.fromHtml(string));
 
 
 		text = (TextView) dialog.findViewById(R.id.tv_help_ee_age);
 		string = context.getString(R.string.dialog_age);
 		string = string.replace("[age]", new Integer(userInterface.getAge()).toString());
-		text.setText(string);
+		string = string.replace("[font]", "<font color=\"#00a9e8\">");
+		string = string.replace("[/font]", "</font>");
+		text.setText(Html.fromHtml(string));
 
 		text = (TextView) dialog.findViewById(R.id.tv_help_ee_gender);
 		string = context.getString(R.string.dialog_gender);
 		string = string.replace("[gender]", (userInterface.getGender()));
-		text.setText(string);
+		string = string.replace("[font]", "<font color=\"#00a9e8\">");
+		string = string.replace("[/font]", "</font>");
+		text.setText(Html.fromHtml(string));
 
 		text = (TextView) dialog.findViewById(R.id.tv_help_ee_time);
 		string = context.getString(R.string.dialog_time);
@@ -138,7 +147,9 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 		long dminutes = diff / (60 * 1000);
 		
 		string = string.replace("[time]", "" +dminutes + "min. " +dsecs +"sec.");
-		text.setText(string);
+		string = string.replace("[font]", "<font color=\"#00a9e8\">");
+		string = string.replace("[/font]", "</font>");
+		text.setText(Html.fromHtml(string));
 
 		return dialog;
 	}
