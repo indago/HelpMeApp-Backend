@@ -131,17 +131,30 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	 * .helpme.demo.utils.User)
 	 */
 	@Override
-	public boolean addUser(User user) {
-		if(users.isEmpty()) {
-			timer.scheduleAtFixedRate(createTimerTask(), TIMEOUT, TIMEOUT);
-		}
+	public boolean addUser(UserInterface user) {
+//		if(users.isEmpty()) {
+//			timer.scheduleAtFixedRate(createTimerTask(), TIMEOUT, TIMEOUT);
+//		}
 		if(users.containsKey(user.getId())) {
 			users.get(user.getId()).updatePosition(user.getPosition());
 			return false;
 		} else {
-			users.putIfAbsent(user.getId(), user);
+			users.putIfAbsent(user.getId(), (User) user);
 			return true;
 		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see com.android.helpme.demo.interfaces.UserManagerInterface#removeUser(com.android.helpme.demo.utils.User)
+	 */
+	@Override
+	public boolean removeUser(UserInterface user) {
+		if (users.containsKey(user.getId())) {
+			users.remove(user.getId());
+			return true;
+		}
+		return false;
 	}
 
 	/*

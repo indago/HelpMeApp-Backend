@@ -146,7 +146,9 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 	 */
 	private void handleIncomingUserAsHelperSeeker(User incomingUser) {
 		userManagerInterface.addUser(incomingUser);
-		historyManagerInterface.getTask().updatePosition(incomingUser);
+		if (historyManagerInterface.getTask() != null) {
+			historyManagerInterface.getTask().updatePosition(incomingUser);
+		}
 
 		if (getDrawManager(DRAWMANAGER_TYPE.HELPERCOMMING) != null) {
 			if (historyManagerInterface.getTask().isUserInShortDistance()) {

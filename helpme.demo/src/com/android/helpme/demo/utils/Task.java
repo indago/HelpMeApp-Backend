@@ -161,6 +161,7 @@ public class Task extends Observable{
 	public void stopUnfinishedTask(){
 		run(positionManagerInterface.stopLocationTracking());
 		run(rabbitMQManagerInterface.endSubscribtionToChannel(exchangeName));
+		userManagerInterface.removeUser(user);
 	}
 	
 	public JSONObject stopTask() {
@@ -175,6 +176,13 @@ public class Task extends Observable{
 		jsonObject.put(STOP_POSITION, positionManagerInterface.getLastPosition().getJSON());
 		jsonObject.put(STATE, state);
 		return jsonObject;
+	}
+	
+	public boolean isSuccsessfull() {
+		if (state.equalsIgnoreCase(SUCCESSFUL)) {
+			return true;
+		}
+		return false;
 	}
 	
 	private TimerTask createTimerTask(){

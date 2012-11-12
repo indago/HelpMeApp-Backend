@@ -9,7 +9,9 @@ import com.android.helpme.demo.utils.User;
 
 public interface UserManagerInterface {
 
-	public  boolean addUser(User position);
+	public  boolean addUser(UserInterface position);
+	
+	public boolean removeUser(UserInterface user);
 
 	public  ArrayList<User> getUsers();
 

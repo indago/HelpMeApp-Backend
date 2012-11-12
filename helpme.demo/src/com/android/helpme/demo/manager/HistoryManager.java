@@ -32,9 +32,9 @@ import com.android.helpme.demo.utils.Task;
 
 /**
  * @author Andreas Wieland
- *
+ * 
  */
-public class HistoryManager extends AbstractMessageSystem implements HistoryManagerInterface,Observer {
+public class HistoryManager extends AbstractMessageSystem implements HistoryManagerInterface, Observer {
 	private static final String LOGTAG = HistoryManager.class.getSimpleName();
 	private static HistoryManager manager;
 	private static Task currentTask;
@@ -43,7 +43,7 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 	private Context context;
 	private ArrayList<JSONObject> arrayList;
 
-	public static HistoryManager getInstance(){
+	public static HistoryManager getInstance() {
 		if (manager == null) {
 			manager = new HistoryManager();
 		}
@@ -60,52 +60,69 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.android.helpme.demo.manager.interfaces.HistoryManagerInterface#setContext(android.content.Context)
+	 * 
+	 * @see
+	 * com.android.helpme.demo.manager.interfaces.HistoryManagerInterface#setContext
+	 * (android.content.Context)
 	 */
 	@Override
 	public void setContext(Context context) {
 		this.context = context;
 	}
 
-
-	/* (non-Javadoc)
-	 * @see com.android.helpme.demo.messagesystem.AbstractMessageSystemInterface#getLogTag()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.android.helpme.demo.messagesystem.AbstractMessageSystemInterface#
+	 * getLogTag()
 	 */
 	@Override
 	public String getLogTag() {
 		return LOGTAG;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.android.helpme.demo.messagesystem.AbstractMessageSystemInterface#getManager()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.android.helpme.demo.messagesystem.AbstractMessageSystemInterface#
+	 * getManager()
 	 */
 	@Override
 	public AbstractMessageSystemInterface getManager() {
 		return manager;
 	}
-	
+
 	@Override
-	public Runnable getHistory()  {
+	public Runnable getHistory() {
 		return new Runnable() {
-			
+
 			@Override
 			public void run() {
 				fireMessageFromManager(arrayList, InAppMessageType.HISTORY);
 			}
 		};
-		
+
 	}
 
-	/* (non-Javadoc)
-	 * @see com.android.helpme.demo.messagesystem.AbstractMessageSystem#getMessage()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.android.helpme.demo.messagesystem.AbstractMessageSystem#getMessage()
 	 */
 	@Override
 	protected InAppMessage getMessage() {
 		return message;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.android.helpme.demo.messagesystem.AbstractMessageSystem#setMessage(com.android.helpme.demo.messagesystem.InAppMessage)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.android.helpme.demo.messagesystem.AbstractMessageSystem#setMessage
+	 * (com.android.helpme.demo.messagesystem.InAppMessage)
 	 */
 	@Override
 	protected void setMessage(InAppMessage inAppMessage) {
@@ -126,33 +143,36 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 
 	@Override
 	public void startNewTask(UserInterface user) {
-			currentTask = new Task();
-			currentTask.addObserver(this);
-			currentTask.startTask(user);
+		currentTask = new Task();
+		currentTask.addObserver(this);
+		currentTask.startTask(user);
 	}
 
 	@Override
 	public void stopTask() {
 		if (currentTask != null) {
-			if (currentTask.isAnswered()) {
-				arrayList.add(currentTask.stopTask());
-			}else {
-				currentTask.stopUnfinishedTask();
+			synchronized (currentTask) {
+				if (currentTask.isSuccsessfull()) {
+					arrayList.add(currentTask.stopTask());
+				} else {
+					currentTask.stopUnfinishedTask();
+				}
+				currentTask = null;
 			}
-			currentTask = null;
-		}		
+
+		}
 	}
-	
-	private boolean readHistory(){
+
+	private boolean readHistory() {
 		if (context != null) {
 			File file = context.getFileStreamPath(FILENAME);
 			if (!file.exists()) {
 				return false;
 			}
-			try{
+			try {
 				FileInputStream inputStream = context.openFileInput(FILENAME);
 				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-				String string = null; 
+				String string = null;
 				JSONParser parser = new JSONParser();
 				while ((string = reader.readLine()) != null) {
 					JSONObject jsonObject = (JSONObject) parser.parse(string);
@@ -161,7 +181,7 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 				reader.close();
 				inputStream.close();
 				return true;
-			}catch(IOException e){
+			} catch (IOException e) {
 				fireError(e);
 			} catch (ParseException e) {
 				fireError(e);
@@ -170,7 +190,7 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 		return false;
 	}
 
-	private boolean writeHistory(){
+	private boolean writeHistory() {
 		if (context != null) {
 			try {
 				FileOutputStream fos = context.openFileOutput(FILENAME, Context.MODE_PRIVATE);
@@ -181,7 +201,7 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 					string = string.replaceAll("(\\r|\\n)", "");
 					writer.write(string);
 				}
-				
+
 				writer.close();
 				fos.close();
 				return true;
@@ -191,12 +211,12 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 		}
 		return false;
 	}
-	
+
 	@Override
 	public Runnable loadHistory(Context applicationContext) {
 		setContext(applicationContext);
 		return new Runnable() {
-			
+
 			@Override
 			public void run() {
 				if (readHistory()) {
@@ -205,12 +225,12 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 			}
 		};
 	}
-	
+
 	@Override
 	public Runnable saveHistory(Context applicationContext) {
 		setContext(applicationContext);
 		return new Runnable() {
-			
+
 			@Override
 			public void run() {
 				if (!writeHistory()) {
@@ -222,6 +242,8 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 
 	@Override
 	public void update(Observable observable, Object data) {
-		fireMessageFromManager(currentTask, InAppMessageType.TIMEOUT);
+		if (currentTask != null) {
+			fireMessageFromManager(currentTask, InAppMessageType.TIMEOUT);
+		}
 	}
 }
