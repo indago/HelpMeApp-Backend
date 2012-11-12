@@ -131,8 +131,8 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 				getDrawManager(DRAWMANAGER_TYPE.MAP).drawThis(incomingUser);
 			}
 		} else {
-			if (getDrawManager(DRAWMANAGER_TYPE.LIST) != null) {
-				getDrawManager(DRAWMANAGER_TYPE.LIST).drawThis(incomingUser);
+			if (getDrawManager(DRAWMANAGER_TYPE.HELPER) != null) {
+				getDrawManager(DRAWMANAGER_TYPE.HELPER).drawThis(incomingUser);
 			}
 
 		}
@@ -212,8 +212,8 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 			break;
 
 		case CHANGED:
-			if (getDrawManager(DRAWMANAGER_TYPE.LIST) != null) {
-				getDrawManager(DRAWMANAGER_TYPE.LIST).drawThis(message.getObject());
+			if (getDrawManager(DRAWMANAGER_TYPE.HELPER) != null) {
+				getDrawManager(DRAWMANAGER_TYPE.HELPER).drawThis(message.getObject());
 			}
 
 			break;
