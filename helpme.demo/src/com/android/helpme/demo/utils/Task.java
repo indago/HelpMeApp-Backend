@@ -161,7 +161,9 @@ public class Task extends Observable{
 	public void stopUnfinishedTask(){
 		run(positionManagerInterface.stopLocationTracking());
 		run(rabbitMQManagerInterface.endSubscribtionToChannel(exchangeName));
-		userManagerInterface.removeUser(user);
+		if (user != null) {
+			userManagerInterface.removeUser(user);
+		}
 	}
 	
 	public JSONObject stopTask() {
