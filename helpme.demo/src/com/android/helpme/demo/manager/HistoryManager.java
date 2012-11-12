@@ -5,6 +5,7 @@ package com.android.helpme.demo.manager;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -144,6 +145,10 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 	
 	private boolean readHistory(){
 		if (context != null) {
+			File file = context.getFileStreamPath(FILENAME);
+			if (!file.exists()) {
+				return false;
+			}
 			try{
 				FileInputStream inputStream = context.openFileInput(FILENAME);
 				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
