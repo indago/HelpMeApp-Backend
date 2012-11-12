@@ -5,6 +5,7 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.android.helpme.demo.exceptions.WrongObjectType;
 import com.android.helpme.demo.interfaces.DrawManagerInterface;
@@ -31,7 +32,7 @@ public class MessageOrchestrator extends MessageHandler implements MessageOrches
 	private static MessageOrchestrator messageOrchestrator;
 	private InAppMessage message;
 	private ArrayList<String> arrayList;
-	private HashMap<DrawManagerInterface.DRAWMANAGER_TYPE, DrawManagerInterface> drawManagerMap;
+	private ConcurrentHashMap<DrawManagerInterface.DRAWMANAGER_TYPE, DrawManagerInterface> drawManagerMap;
 
 	public static MessageOrchestrator getInstance() {
 		if (messageOrchestrator == null) {
@@ -42,7 +43,7 @@ public class MessageOrchestrator extends MessageHandler implements MessageOrches
 
 	private MessageOrchestrator() {
 		arrayList = new ArrayList<String>();
-		drawManagerMap = new HashMap<DrawManagerInterface.DRAWMANAGER_TYPE, DrawManagerInterface>();
+		drawManagerMap = new ConcurrentHashMap<DrawManagerInterface.DRAWMANAGER_TYPE, DrawManagerInterface>();
 	}
 
 	/*
@@ -124,7 +125,7 @@ public class MessageOrchestrator extends MessageHandler implements MessageOrches
 	 * ()
 	 */
 	@Override
-	public HashMap<DrawManagerInterface.DRAWMANAGER_TYPE, DrawManagerInterface> getDrawManagers() {
+	public ConcurrentHashMap<DrawManagerInterface.DRAWMANAGER_TYPE, DrawManagerInterface> getDrawManagers() {
 		return drawManagerMap;
 	}
 
@@ -150,7 +151,7 @@ public class MessageOrchestrator extends MessageHandler implements MessageOrches
 	 */
 	@Override
 	public void addDrawManager(DrawManagerInterface.DRAWMANAGER_TYPE type, DrawManagerInterface drawManager) {
-		this.drawManagerMap.put(type, drawManager);
+			this.drawManagerMap.put(type, drawManager);
 	}
 
 	/*
@@ -162,6 +163,6 @@ public class MessageOrchestrator extends MessageHandler implements MessageOrches
 	 */
 	@Override
 	public void removeDrawManager(DRAWMANAGER_TYPE type) {
-		this.drawManagerMap.remove(type);
+			this.drawManagerMap.remove(type);
 	}
 }

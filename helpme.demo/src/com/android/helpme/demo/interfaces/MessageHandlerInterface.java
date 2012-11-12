@@ -1,6 +1,7 @@
 package com.android.helpme.demo.interfaces;
 
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.android.helpme.demo.interfaces.DrawManagerInterface.DRAWMANAGER_TYPE;
 import com.android.helpme.demo.manager.MessageHandler;
@@ -11,7 +12,7 @@ public interface MessageHandlerInterface {
 	 * Gets all {@link DrawManagerInterface} which are associated to the Message Handler
 	 * @return
 	 */
-	public HashMap<DrawManagerInterface.DRAWMANAGER_TYPE, DrawManagerInterface> getDrawManagers();
+	public ConcurrentHashMap<DrawManagerInterface.DRAWMANAGER_TYPE, DrawManagerInterface> getDrawManagers();
 
 	/**
 	 * returns associated {@link DrawManagerInterface} with {@link DRAWMANAGER_TYPE}
