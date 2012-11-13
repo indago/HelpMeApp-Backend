@@ -84,13 +84,20 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 
 	@Override
 	public void onCreate() {
-		//		mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-		factory  = new ConnectionFactory();
-		factory.setHost(URL);
-		subscribedChannels = new ConcurrentHashMap<String, Channel>();
-		shutdownReactor = new ShutdownReactor(subscribedChannels);
-		service = this;
-		vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+		
+		
+		
+//		Notification notification = new Notification.Builder(this)
+//				.setContentTitle("started")
+//				.setOngoing(true).getNotification();
+//		
+//		startForeground(NOTIFICATION, notification);
+	}
+	
+	@Override
+	public void onStart(Intent intent, int startId) {
+		// TODO Auto-generated method stub
+		super.onStart(intent, startId);
 	}
 
 	@Override
@@ -114,6 +121,11 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
+		subscribedChannels = new ConcurrentHashMap<String, Channel>();
+		shutdownReactor = new ShutdownReactor(subscribedChannels);
+		service = this;
+		vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+		
 		Log.i(LOGTAG, getString(R.string.local_service_started));
 		// We want this service to continue running until it is explicitly
 		// stopped, so return sticky.
@@ -176,6 +188,8 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 					return;
 				}
 				try {
+					factory  = new ConnectionFactory();
+					factory.setHost(URL);
 					connection = factory.newConnection();
 					connected = connection.isOpen();
 					Log.i(LOGTAG, "connected to rabbitMQ");

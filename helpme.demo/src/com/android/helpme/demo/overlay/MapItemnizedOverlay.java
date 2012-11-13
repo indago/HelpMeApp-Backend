@@ -79,8 +79,7 @@ public class MapItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 	}
 	
 	private Dialog buildDialog(MapOverlayItem item) {
-		JSONObject object = item.getJsonObject();
-		UserInterface userInterface = new User((JSONObject) object.get(Task.USER));
+		UserInterface userInterface = new User((JSONObject) item.getJsonObject());
 		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
 
 		Dialog dialog = dialogBuilder.show();
@@ -94,10 +93,10 @@ public class MapItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 		text = (TextView) dialog.findViewById(R.id.map_name);
 		text.setText(Html.fromHtml(context.getText(R.string.dialog_name) + userInterface.getName()));
 		
-		text = (TextView) dialog.findViewById(R.id.history_age);
+		text = (TextView) dialog.findViewById(R.id.map_age);
 		text.setText(Html.fromHtml(context.getString(R.string.dialog_age) + new Integer(userInterface.getAge()).toString()));
 
-		text = (TextView) dialog.findViewById(R.id.history_gender);
+		text = (TextView) dialog.findViewById(R.id.map_gender);
 		text.setText(Html.fromHtml(context.getString(R.string.dialog_gender) + userInterface.getGender() ));
 
 		return dialog;
