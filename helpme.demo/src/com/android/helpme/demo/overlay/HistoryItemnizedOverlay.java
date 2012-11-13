@@ -11,13 +11,20 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.text.Html;
+import android.text.Spanned;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.android.helpme.demo.R;
@@ -59,7 +66,7 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 	protected HistoryOverlayItem createItem(int i) {
 		return items.get(i);
 	}
-	
+
 	@Override
 	public int size() {
 		return items.size();
@@ -68,22 +75,22 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 	public ArrayList<HistoryOverlayItem> getItems() {
 		return items;
 	}
-	
-//	@Override
-//	public boolean onTouchEvent(MotionEvent arg0, MapView arg1) {
-//		HistoryOverlayItem item = items.get(0);
-//		if (item != null) {
-//			buildDialog(item).show();
-//			return true;
-//
-//		}
-//		return false;
-//	}
 
-//	@Override
-//	public boolean onTap(GeoPoint arg0, MapView arg1) {
-//		return false;
-//	}
+	//	@Override
+	//	public boolean onTouchEvent(MotionEvent arg0, MapView arg1) {
+	//		HistoryOverlayItem item = items.get(0);
+	//		if (item != null) {
+	//			buildDialog(item).show();
+	//			return true;
+	//
+	//		}
+	//		return false;
+	//	}
+
+	//	@Override
+	//	public boolean onTap(GeoPoint arg0, MapView arg1) {
+	//		return false;
+	//	}
 
 	@Override
 	protected boolean onTap(int index) {
@@ -102,54 +109,35 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
 
 		Dialog dialog = dialogBuilder.show();
-//		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-		dialog.setContentView(R.layout.custom_dialog);
-		TextView text; String string;
+		//		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+		dialog.setContentView(R.layout.history_detail_dialog);
 
-		text = (TextView) dialog.findViewById(R.id.tv_help_ee_name);
-		string = context.getString(R.string.dialog_name);
-		string = string.replace("[name]", userInterface.getName());
-		string = string.replace("[font]", "<font color=\"#00a9e8\">");
-		string = string.replace("[/font]", "</font>");
-		text.setText(Html.fromHtml(string));
+		TextView text;
 
-		text = (TextView) dialog.findViewById(R.id.tv_help_ee_date);
-		string = context.getString(R.string.dialog_date);
+		text = (TextView) dialog.findViewById(R.id.history_name);
+		text.setText(Html.fromHtml(context.getText(R.string.dialog_name) + userInterface.getName()));
+
+		text = (TextView) dialog.findViewById(R.id.history_date);
 		Date date = new Date((Long) object.get(Task.START_TIME));
 		DateFormat dateFormat = android.text.format.DateFormat.getDateFormat(context);
-		string = string.replace("[date]", dateFormat.format(date));
-		string = string.replace("[font]", "<font color=\"#00a9e8\">");
-		string = string.replace("[/font]", "</font>");
-		text.setText(Html.fromHtml(string));
+		text.setText(Html.fromHtml(context.getText(R.string.dialog_date) + dateFormat.format(date)));
 
 
-		text = (TextView) dialog.findViewById(R.id.tv_help_ee_age);
-		string = context.getString(R.string.dialog_age);
-		string = string.replace("[age]", new Integer(userInterface.getAge()).toString());
-		string = string.replace("[font]", "<font color=\"#00a9e8\">");
-		string = string.replace("[/font]", "</font>");
-		text.setText(Html.fromHtml(string));
+		text = (TextView) dialog.findViewById(R.id.history_age);
+		text.setText(Html.fromHtml(context.getString(R.string.dialog_age) + new Integer(userInterface.getAge()).toString()));
 
-		text = (TextView) dialog.findViewById(R.id.tv_help_ee_gender);
-		string = context.getString(R.string.dialog_gender);
-		string = string.replace("[gender]", (userInterface.getGender()));
-		string = string.replace("[font]", "<font color=\"#00a9e8\">");
-		string = string.replace("[/font]", "</font>");
-		text.setText(Html.fromHtml(string));
+		text = (TextView) dialog.findViewById(R.id.history_gender);
+		text.setText(Html.fromHtml(context.getString(R.string.dialog_gender) + userInterface.getGender() ));
 
-		text = (TextView) dialog.findViewById(R.id.tv_help_ee_time);
-		string = context.getString(R.string.dialog_time);
+		text = (TextView) dialog.findViewById(R.id.history_time);
 		Long stoptime = (Long) object.get(Task.STOP_TIME);
 		Long starttime = date.getTime();
 
 		long diff = stoptime - starttime;
 		long dsecs = (diff / 1000) % (60 * 1000);
 		long dminutes = diff / (60 * 1000);
-		
-		string = string.replace("[time]", "" +dminutes + "min. " +dsecs +"sec.");
-		string = string.replace("[font]", "<font color=\"#00a9e8\">");
-		string = string.replace("[/font]", "</font>");
-		text.setText(Html.fromHtml(string));
+
+		text.setText(Html.fromHtml(context.getString(R.string.dialog_time) + "" +dminutes + "min. " +dsecs +"sec."));
 
 		return dialog;
 	}

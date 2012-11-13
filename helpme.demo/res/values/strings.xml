@@ -5,9 +5,9 @@
     <string name="local_service_started">service started</string>
     <string name="local_service_stopped">service stopped</string>
 
-    <string name="dialog_name">[font]Name:[/font] [name]</string>
-    <string name="dialog_age">[font]Age:[/font] [age]</string>
-    <string name="dialog_gender">[font]Gender:[/font] [gender]</string>
-    <string name="dialog_date">[font]Date:[/font] [date]</string>
-    <string name="dialog_time">[font]Time:[/font] [time]</string>
+    <string name="dialog_name"><![CDATA[<font color="#00a9e8"><b>Name: </b></font>]]></string>
+    <string name="dialog_age"><![CDATA[<font color="#00a9e8"><b>Age: </b></font>]]></string>
+    <string name="dialog_gender"><![CDATA[<font color="#00a9e8"><b>Gender: </b></font>]]></string>
+    <string name="dialog_date"><![CDATA[<font color="#00a9e8"><b>Date: </b></font>]]></string>
+    <string name="dialog_time"><![CDATA[<font color="#00a9e8"><b>Time: </b></font>]]></string>
 </resources>

@@ -2,17 +2,11 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:background="@drawable/background" >
-
-    <ImageView
-        android:id="@+id/iv_seperator0"
-        android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:layout_marginRight="10dp"
-        android:layout_weight="0"
-        android:scaleType="fitXY"
-        android:src="@drawable/seperator_line_horizontal" />
+    android:layout_gravity="center"
+    android:paddingLeft="5pt"
+    android:paddingRight="5pt"
+    android:orientation="vertical" 
+    android:background="@drawable/maps_help_ee_detail_box_bg">
     
     <TextView
         android:id="@+id/tv_help_ee_date"
@@ -94,14 +88,5 @@
         android:layout_weight="0"
         android:lines="1"
         android:textSize="8pt" />
-
-    <ImageView
-        android:id="@+id/iv_seperator5"
-        android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:layout_marginRight="10dp"
-        android:layout_weight="0"
-        android:scaleType="fitXY"
-        android:src="@drawable/seperator_line_horizontal" />
 
 </LinearLayout>
