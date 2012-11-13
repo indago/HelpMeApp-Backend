@@ -3,90 +3,77 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
+    android:background="@drawable/maps_help_ee_detail_box_bg"
+    android:orientation="horizontal"
     android:paddingLeft="5pt"
-    android:paddingRight="5pt"
-    android:orientation="vertical" 
-    android:background="@drawable/maps_help_ee_detail_box_bg">
+    android:paddingRight="5pt" >
     
-    <TextView
-        android:id="@+id/tv_help_ee_date"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:layout_weight="0"
-        android:lines="1"
-        android:textSize="8pt" />
-
     <ImageView
-        android:id="@+id/iv_seperator1"
+        android:id="@+id/map_pic"
         android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:layout_marginRight="10dp"
-        android:layout_weight="0"
-        android:scaleType="fitXY"
-        android:src="@drawable/seperator_line_horizontal" />
-    
-     <TextView
-        android:id="@+id/tv_help_ee_time"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:layout_weight="0"
-        android:lines="1"
-        android:textSize="8pt" />
+        android:layout_height="wrap_content" />
 
-    <ImageView
-        android:id="@+id/iv_seperator2"
-        android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:layout_marginRight="10dp"
-        android:layout_weight="0"
-        android:scaleType="fitXY"
-        android:src="@drawable/seperator_line_horizontal" />
-    
-     <TextView
-        android:id="@+id/tv_help_ee_name"
-        android:layout_width="match_parent"
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:layout_weight="0"
-        android:lines="1"
-        android:textSize="8pt" />
+        android:orientation="vertical"
+        android:paddingLeft="5pt"
+        android:paddingRight="5pt" >
 
-    <ImageView
-        android:id="@+id/iv_seperator3"
-        android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:layout_marginRight="10dp"
-        android:layout_weight="0"
-        android:scaleType="fitXY"
-        android:src="@drawable/seperator_line_horizontal" />
-    
-     <TextView
-        android:id="@+id/tv_help_ee_gender"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:layout_weight="0"
-        android:lines="1"
-        android:textSize="8pt" />
+        <TextView
+            android:id="@+id/map_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="0"
+            android:lines="1"
+            android:textSize="8pt" />
 
-    <ImageView
-        android:id="@+id/iv_seperator4"
-        android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:layout_marginRight="10dp"
-        android:layout_weight="0"
-        android:scaleType="fitXY"
-        android:src="@drawable/seperator_line_horizontal" />
-    
-     <TextView
-        android:id="@+id/tv_help_ee_age"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:layout_weight="0"
-        android:lines="1"
-        android:textSize="8pt" />
+        <ImageView
+            android:id="@+id/iv_seperator1"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_marginRight="10dp"
+            android:layout_weight="0"
+            android:scaleType="fitXY"
+            android:src="@drawable/seperator_line_horizontal" />
+
+        <TextView
+            android:id="@+id/map_age"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="0"
+            android:lines="1"
+            android:textSize="8pt" />
+
+        <ImageView
+            android:id="@+id/iv_seperator2"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_marginRight="10dp"
+            android:layout_weight="0"
+            android:scaleType="fitXY"
+            android:src="@drawable/seperator_line_horizontal" />
+
+        <TextView
+            android:id="@+id/map_gender"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="0"
+            android:lines="1"
+            android:textSize="8pt" />
+
+        <ImageView
+            android:id="@+id/iv_seperator3"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_marginRight="10dp"
+            android:layout_weight="0"
+            android:scaleType="fitXY"
+            android:src="@drawable/seperator_line_horizontal" />
+    </LinearLayout>
 
 </LinearLayout>
