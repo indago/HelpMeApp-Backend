@@ -43,9 +43,13 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 					return;
 				}
 				Position position = (Position) message.getObject();
-				if(position != null) {
+				if(userManagerInterface.thisUser() != null) {
 					userManagerInterface.thisUser().updatePosition(position);
+				}else {
+					run(positionManagerInterface.stopLocationTracking());
 				}
+				
+				
 				if(getDrawManager(DRAWMANAGER_TYPE.MAP) != null) {
 					getDrawManager(DRAWMANAGER_TYPE.MAP).drawThis(userManagerInterface.getThisUser());
 				}
@@ -125,6 +129,7 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 			historyManagerInterface.getTask().updatePosition(incomingUser);
 
 			if(historyManagerInterface.getTask().isUserInShortDistance()) {
+				historyManagerInterface.getTask().setSuccesfull();
 				getDrawManager(DRAWMANAGER_TYPE.MAP).drawThis(historyManagerInterface.getTask());
 
 			} else {
@@ -139,7 +144,7 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 	}
 
 	/**
-	 * ddddddddddddddd if this user is a Help Seeker this Method will be called
+	 * if this user is a Help Seeker this Method will be called
 	 * and starts the Map {@link DrawManagerInterface}
 	 * 
 	 * @param incomingUser
@@ -152,6 +157,7 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 
 		if(getDrawManager(DRAWMANAGER_TYPE.HELPERCOMMING) != null) {
 			if(historyManagerInterface.getTask().isUserInShortDistance()) {
+				historyManagerInterface.getTask().setSuccesfull();
 				getDrawManager(DRAWMANAGER_TYPE.HELPERCOMMING).drawThis(historyManagerInterface.getTask());
 			} else {
 				getDrawManager(DRAWMANAGER_TYPE.HELPERCOMMING).drawThis(incomingUser);

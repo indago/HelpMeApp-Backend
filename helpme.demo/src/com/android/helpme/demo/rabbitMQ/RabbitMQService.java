@@ -84,7 +84,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 
 	@Override
 	public void onCreate() {
-//		mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+		//		mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 		factory  = new ConnectionFactory();
 		factory.setHost(URL);
 		subscribedChannels = new ConcurrentHashMap<String, Channel>();
@@ -122,14 +122,14 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 		String text = getString(R.string.waitingtext);
 		String title = getString(R.string.waitingtitle);
 
-//		showNotification(text,title);
+		//		showNotification(text,title);
 		return START_STICKY;
 	}
 
 	@Override
 	public void onDestroy() {
 		Log.i(LOGTAG, getString(R.string.local_service_stopped));
-//		mNM.cancelAll();
+		//		mNM.cancelAll();
 		runThread(disconnect());
 		while (connected) {
 			;
@@ -147,23 +147,23 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 	public void showNotification(String text, String title) {
 
 		// The PendingIntent to launch our activity if the user selects this notification
-//		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-//				new Intent(this, SwitcherActivity.class), 0);
+		//		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+		//				new Intent(this, SwitcherActivity.class), 0);
 
 		long[] pattern = {0,200,200,200,200};
 		vibrator.vibrate(pattern, -1);
 
-//		Notification notification = new Notification.Builder(this)
-//		.setContentTitle(title)
-//		.setContentText(text)
-//		.setSmallIcon(R.drawable.ic_launcher)
-//		.setContentIntent(contentIntent)
-//		.setOngoing(true)
-//		.build();
-//
-//
-//		// Send the notification.
-//		mNM.notify(NOTIFICATION, notification);
+		//		Notification notification = new Notification.Builder(this)
+		//		.setContentTitle(title)
+		//		.setContentText(text)
+		//		.setSmallIcon(R.drawable.ic_launcher)
+		//		.setContentIntent(contentIntent)
+		//		.setOngoing(true)
+		//		.build();
+		//
+		//
+		//		// Send the notification.
+		//		mNM.notify(NOTIFICATION, notification);
 	}
 
 	@Override
@@ -177,7 +177,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 				}
 				try {
 					connection = factory.newConnection();
-					connected = true;
+					connected = connection.isOpen();
 					Log.i(LOGTAG, "connected to rabbitMQ");
 					sendMessage(InAppMessageType.CONNECTED, null);
 
@@ -235,11 +235,29 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 
 	@Override
 	public Runnable subscribeToChannel(final String exchangeName,final String type) {
+
 		return new Runnable() {
 
 			@Override
 			public void run() {
+				if (!connected) {
+					runThread(connect());
+					long time = System.currentTimeMillis();
+					while (System.currentTimeMillis() - time < 200){
+
+					}
+					if (!connected) {
+						//TODO
+//						Toast.makeText(service, "No internet Connection", 10000);
+						return;
+					}
+				}
 				try {
+					
+					if (subscribedChannels.isEmpty() && exchangeName.equalsIgnoreCase("main")) {
+						runThread(subscribeToChannel("main", "fanout"));
+					}
+					
 					// we create a new channel 
 					Channel channel = connection.createChannel();
 					channel.exchangeDeclare(exchangeName, type);
@@ -250,6 +268,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 					// we define what happens if we recieve a new Message
 					channel.basicConsume(queueName,new RabbitMQConsumer(channel, service));
 					subscribedChannels.putIfAbsent(exchangeName, channel);
+					
 				} catch (IOException e) {
 					Log.e(LOGTAG, e.toString());
 				}
