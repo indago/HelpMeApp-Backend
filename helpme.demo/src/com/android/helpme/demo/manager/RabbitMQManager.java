@@ -263,7 +263,7 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 				serviceConnection = createNewServiceConnection();
 				Messenger messenger = new Messenger(handler);
 				intent.putExtra(RabbitMQService.MESSENGER, messenger);
-				activity.bindService(intent, serviceConnection, Service.BIND_ADJUST_WITH_ACTIVITY);
+				context.bindService(intent, serviceConnection, Service.BIND_ADJUST_WITH_ACTIVITY);
 			}
 		};
 	}
