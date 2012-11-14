@@ -140,7 +140,9 @@ public class User implements UserInterface {
 		JSONObject object = new JSONObject();
 		object.put(NAME, name);
 		object.put(HELFER, helfer);
-		object.put(POSITION, position.getJSON());
+		if (position != null) {
+			object.put(POSITION, position.getJSON());
+		}
 		object.put(ID, id);
 		object.put(PICTURE, pic);
 		object.put(AGE, age);

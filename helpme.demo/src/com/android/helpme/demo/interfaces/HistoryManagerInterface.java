@@ -27,6 +27,5 @@ public interface HistoryManagerInterface {
 	
 	public void setContext(Context context);
 	
-	public Runnable saveHistory(Context applicationContext);
 	public Runnable loadHistory(Context applicationContext);
 }

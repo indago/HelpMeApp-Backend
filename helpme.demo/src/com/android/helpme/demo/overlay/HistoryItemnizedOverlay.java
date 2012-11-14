@@ -118,7 +118,7 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 		text.setText(Html.fromHtml(context.getText(R.string.dialog_name) + userInterface.getName()));
 
 		text = (TextView) dialog.findViewById(R.id.history_date);
-		Date date = new Date((Long) object.get(Task.START_TIME));
+		Date date = new Date( (Long) (object.get(Task.START_TIME)));
 		DateFormat dateFormat = android.text.format.DateFormat.getDateFormat(context);
 		text.setText(Html.fromHtml(context.getText(R.string.dialog_date) + dateFormat.format(date)));
 
@@ -130,7 +130,7 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 		text.setText(Html.fromHtml(context.getString(R.string.dialog_gender) + userInterface.getGender() ));
 
 		text = (TextView) dialog.findViewById(R.id.history_time);
-		Long stoptime = (Long) object.get(Task.STOP_TIME);
+		Long stoptime = (Long) (object.get(Task.STOP_TIME));
 		Long starttime = date.getTime();
 
 		long diff = stoptime - starttime;

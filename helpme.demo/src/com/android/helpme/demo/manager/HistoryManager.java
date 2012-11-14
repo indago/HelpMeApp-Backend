@@ -4,24 +4,30 @@
 package com.android.helpme.demo.manager;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
+import org.jdom2.DataConversionException;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.filter.ElementFilter;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
 import android.content.Context;
 
-import com.android.helpme.demo.exceptions.DontKnowWhatHappenedException;
 import com.android.helpme.demo.interfaces.HistoryManagerInterface;
 import com.android.helpme.demo.interfaces.UserInterface;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
@@ -41,7 +47,10 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 	private InAppMessage message;
 	private static final String FILENAME = "history_file";
 	private Context context;
-	private ArrayList<JSONObject> arrayList;
+	private boolean writing = false;
+	private JSONParser jsonParser;
+	private Element root;
+	private Document document;
 
 	public static HistoryManager getInstance() {
 		if (manager == null) {
@@ -55,7 +64,9 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 	 */
 	private HistoryManager() {
 		context = null;
-		arrayList = new ArrayList<JSONObject>();
+		jsonParser = new JSONParser();
+		root = new Element("root");
+		document = new Document(root);
 	}
 
 	/*
@@ -100,7 +111,18 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 
 			@Override
 			public void run() {
-				fireMessageFromManager(arrayList, InAppMessageType.HISTORY);
+				try{
+					ArrayList<JSONObject> arrayList = new ArrayList<JSONObject>();
+					List<Element> list = root.getChildren();
+					for (Element element : list) {
+						arrayList.add(xmlToJsonObject(element));
+					}
+					fireMessageFromManager(arrayList, InAppMessageType.HISTORY);
+				}catch(ParseException e){
+					fireError(e);
+				} catch (DataConversionException e) {
+					fireError(e);
+				}
 			}
 		};
 
@@ -152,7 +174,9 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 	public void stopTask() {
 		if (currentTask != null) {
 			if (currentTask.isSuccsessfull()) {
-				arrayList.add(currentTask.stopTask());
+				JSONObject jsonObject = currentTask.stopTask(); 
+				root.addContent(jsonToXml(jsonObject));
+				writeHistory();
 			} else {
 				currentTask.stopUnfinishedTask();
 			}
@@ -163,54 +187,113 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 	private boolean readHistory() {
 		if (context != null) {
 			File file = context.getFileStreamPath(FILENAME);
-			if (!file.exists()) {
+			if (file == null || !file.exists()) {
 				return false;
 			}
 			try {
-				FileInputStream inputStream = context.openFileInput(FILENAME);
+
+				FileInputStream inputStream = new FileInputStream(file);
 				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 				String string = null;
+				String text = new String();
 				JSONParser parser = new JSONParser();
 				while ((string = reader.readLine()) != null) {
-					JSONObject jsonObject = (JSONObject) parser.parse(string);
-					if (arrayList.contains(jsonObject)) {
-						arrayList.add(jsonObject);
-					}
-					
+					text += string; 
+
 				}
 				reader.close();
-				inputStream.close();
+
+				SAXBuilder saxBuilder = new SAXBuilder();
+				document = saxBuilder.build(file);
+				root = document.getRootElement();
+				
+				//				SAXParser saxParser = saxParserFactory.newSAXParser();
+				//				HistorySaxHandler handler = new HistorySaxHandler();
+				//				context.getFileStreamPath(FILENAME);
+				//				saxParser.parse(file, handler);
+
+				//				
 				return true;
 			} catch (IOException e) {
 				fireError(e);
-			} catch (ParseException e) {
+			} catch (JDOMException e) {
 				fireError(e);
-			}
+			} 
 		}
 		return false;
+	}
+
+	private JSONObject xmlToJsonObject(Element element) throws ParseException, DataConversionException {
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put(Task.USER,  (JSONObject) jsonParser.parse(element.getChild(Task.USER).getText()));
+		jsonObject.put(Task.START_POSITION, (JSONObject) jsonParser.parse(element.getChild(Task.START_POSITION).getText()));
+		jsonObject.put(Task.STOP_POSITION, (JSONObject) jsonParser.parse(element.getChild(Task.STOP_POSITION).getText()));
+
+		jsonObject.put(Task.START_TIME, element.getAttribute(Task.START_TIME).getLongValue());
+		jsonObject.put(Task.STOP_TIME, element.getAttribute(Task.STOP_TIME).getLongValue());
+
+		return jsonObject;
+	}
+
+	private Element jsonToXml(JSONObject jsonObject){
+		Element historyelement = new Element(Task.TASK);
+
+		Element element = new Element(Task.USER);
+		element.setText(jsonObject.get(Task.USER).toString());
+		historyelement.addContent(element);
+
+		element = new Element(Task.START_POSITION);
+		element.setText(jsonObject.get(Task.START_POSITION).toString());
+		historyelement.addContent(element);
+
+		element = new Element(Task.STOP_POSITION);
+		element.setText(jsonObject.get(Task.STOP_POSITION).toString());
+		historyelement.addContent(element);
+
+		historyelement.setAttribute(Task.START_TIME, jsonObject.get(Task.START_TIME).toString());
+		historyelement.setAttribute(Task.STOP_TIME, jsonObject.get(Task.STOP_TIME).toString());
+		return historyelement;
 	}
 
 	private boolean writeHistory() {
 		if (context != null) {
 			try {
-				FileOutputStream fos = context.openFileOutput(FILENAME, Context.MODE_PRIVATE);
-				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));
+				writing = true;
 
-				for (JSONObject jsonObject : arrayList) {
-					String string = jsonObject.toJSONString();
-					string = string.replaceAll("(\\r|\\n)", "");
-					writer.write(string);
-				}
+				//				FileOutputStream fos = context.openFileOutput(FILENAME, Context.MODE_PRIVATE);
+				//				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));
+				Writer writer=new FileWriter(context.getFileStreamPath(FILENAME));
 
-				writer.flush();
-				fos.flush();
-				
-				writer.close();
-				fos.close();
+				//				Transformer transformer = transformerFactory.newTransformer();
+
+				XMLOutputter xmlOutputter = new XMLOutputter(Format.getCompactFormat());
+
+				// write the content into xml file
+				// XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
+				xmlOutputter.output(document, writer);
+
+				//				transformer.transform(source, result);
+
+
+				// Output to console for testing
+				// StreamResult result = new StreamResult(System.out);
+
+
+
+				//				 
+				//				
+				//				writer.write(string);
+				//
+				//				writer.flush();
+				//				fos.flush();
+				//
+				//				writer.close();
+				//				fos.close();
+				writing = false;
 				return true;
 			} catch (IOException e) {
 				fireError(e);
-			}
+			} 
 		}
 		return false;
 	}
@@ -222,25 +305,21 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 
 			@Override
 			public void run() {
-				if (readHistory()) {
+				readHistory();
+				try {
+					ArrayList<JSONObject> arrayList = new ArrayList<JSONObject>();
+					List<Element> list = root.getChildren();
+					for (Element element : list) {
+						arrayList.add(xmlToJsonObject(element));
+					}
 					if (arrayList.isEmpty()) {
 						return;
 					}
 					fireMessageFromManager(arrayList, InAppMessageType.LOADED);
-				}
-			}
-		};
-	}
-
-	@Override
-	public Runnable saveHistory(Context applicationContext) {
-		setContext(applicationContext);
-		return new Runnable() {
-
-			@Override
-			public void run() {
-				if (!writeHistory()) {
-					fireError(new DontKnowWhatHappenedException());
+				} catch (ParseException e) {
+					fireError(e);
+				} catch (DataConversionException e) {
+					fireError(e);
 				}
 			}
 		};
