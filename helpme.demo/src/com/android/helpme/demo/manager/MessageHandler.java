@@ -37,32 +37,51 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 	 */
 	protected void handlePositionMessage(InAppMessage message) {
 		switch(message.getType()) {
-			case LOCATION:
-				if(!(message.getObject() instanceof Position)) {
-					fireError(new WrongObjectType(message.getObject(), Position.class));
-					return;
-				}
-				Position position = (Position) message.getObject();
-				if(userManagerInterface.thisUser() != null) {
-					userManagerInterface.thisUser().updatePosition(position);
-				}else {
-					run(positionManagerInterface.stopLocationTracking());
-				}
+		case LOCATION:
+			if(!(message.getObject() instanceof Position)) {
+				fireError(new WrongObjectType(message.getObject(), Position.class));
+				return;
+			}
+			Position position = (Position) message.getObject();
+			if(userManagerInterface.thisUser() != null) {
+				userManagerInterface.thisUser().updatePosition(position);
+			}else {
+				run(positionManagerInterface.stopLocationTracking());
+			}
+			
+			// draw the position on the map(only helper has a map)
+			if(getDrawManager(DRAWMANAGER_TYPE.MAP) != null) {
+				getDrawManager(DRAWMANAGER_TYPE.MAP).drawThis(userManagerInterface.getThisUser());
+			}
+
+
+			if(historyManagerInterface.getTask() != null) {
+				historyManagerInterface.getTask().sendPosition(position);
 				
-				
-				if(getDrawManager(DRAWMANAGER_TYPE.MAP) != null) {
-					getDrawManager(DRAWMANAGER_TYPE.MAP).drawThis(userManagerInterface.getThisUser());
+				// if our position is in short range
+				if(historyManagerInterface.getTask().isUserInShortDistance()){
+					historyManagerInterface.getTask().setSuccesfull();
+					
+					// we set Task as succsesful and draw the finish
+					if (userManagerInterface.getThisUser().isHelper()) {
+						if(getDrawManager(DRAWMANAGER_TYPE.MAP) != null) {
+							getDrawManager(DRAWMANAGER_TYPE.MAP).drawThis(historyManagerInterface.getTask());
+						}
+					}
+					
+					else {
+						if(getDrawManager(DRAWMANAGER_TYPE.HELPERCOMMING) != null) {
+							getDrawManager(DRAWMANAGER_TYPE.HELPERCOMMING).drawThis(historyManagerInterface.getTask());
+						}
+					}
 				}
+			}
 
-				if(historyManagerInterface.getTask() != null) {
-					historyManagerInterface.getTask().sendPosition(position);
-				}
+			break;
 
-				break;
-
-			default:
-				fireError(new UnkownMessageType());
-				break;
+		default:
+			fireError(new UnkownMessageType());
+			break;
 		}
 	}
 
@@ -73,44 +92,44 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 	 */
 	protected void handleRabbitMQMessages(InAppMessage message) {
 		switch(message.getType()) {
-			case UNBOUND_FROM_SERVICE:
-				// TODO
-				break;
-			case BOUND_TO_SERVICE:
-				run(rabbitMQManagerInterface.connect());
-				break;
+		case UNBOUND_FROM_SERVICE:
+			// TODO
+			break;
+		case BOUND_TO_SERVICE:
+			run(rabbitMQManagerInterface.connect());
+			break;
 
-			case CONNECTED:
-				run(rabbitMQManagerInterface.subscribeToMainChannel());
-				break;
+		case CONNECTED:
+			run(rabbitMQManagerInterface.subscribeToMainChannel());
+			break;
 
-			case RECEIVED_DATA:
-				if(!(message.getObject() instanceof User)) {
-					fireError(new WrongObjectType(message.getObject(), User.class));
-					return;
-				}
-				User user = (User) message.getObject();
+		case RECEIVED_DATA:
+			if(!(message.getObject() instanceof User)) {
+				fireError(new WrongObjectType(message.getObject(), User.class));
+				return;
+			}
+			User user = (User) message.getObject();
 
-				if(!UserManager.getInstance().isUserSet()) {
-					return;
-				}
+			if(!UserManager.getInstance().isUserSet()) {
+				return;
+			}
 
-				if(!user.getId().equalsIgnoreCase(userManagerInterface.getThisUser().getId())) {
+			if(!user.getId().equalsIgnoreCase(userManagerInterface.getThisUser().getId())) {
 
-					if(userManagerInterface.getThisUser().isHelper()) {
-						handleIncomingUserAsHelper(user);
-					} else {
-						if(user.isHelper()) {
-							handleIncomingUserAsHelperSeeker(user);
-						}
-
+				if(userManagerInterface.getThisUser().isHelper()) {
+					handleIncomingUserAsHelper(user);
+				} else {
+					if(user.isHelper()) {
+						handleIncomingUserAsHelperSeeker(user);
 					}
-				}
-				break;
 
-			default:
-				fireError(new UnkownMessageType());
-				break;
+				}
+			}
+			break;
+
+		default:
+			fireError(new UnkownMessageType());
+			break;
 		}
 	}
 
@@ -173,25 +192,25 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 
 	protected void handleHistoryMessages(InAppMessage message) {
 		switch(message.getType()) {
-			case TIMEOUT:
-				historyManagerInterface.stopTask();
-				getDrawManager(DRAWMANAGER_TYPE.SEEKER).drawThis(message.getObject());
-				break;
-			case LOADED:
-				if(getDrawManager(DRAWMANAGER_TYPE.HISTORY) != null) {
-					getDrawManager(DRAWMANAGER_TYPE.HISTORY).drawThis(message.getObject());
-				}
-				break;
+		case TIMEOUT:
+			historyManagerInterface.stopTask();
+			getDrawManager(DRAWMANAGER_TYPE.SEEKER).drawThis(message.getObject());
+			break;
+		case LOADED:
+			if(getDrawManager(DRAWMANAGER_TYPE.HISTORY) != null) {
+				getDrawManager(DRAWMANAGER_TYPE.HISTORY).drawThis(message.getObject());
+			}
+			break;
 
-			case HISTORY:
-				if(getDrawManager(DRAWMANAGER_TYPE.HISTORY) != null) {
-					getDrawManager(DRAWMANAGER_TYPE.HISTORY).drawThis(message.getObject());
-				}
-				break;
+		case HISTORY:
+			if(getDrawManager(DRAWMANAGER_TYPE.HISTORY) != null) {
+				getDrawManager(DRAWMANAGER_TYPE.HISTORY).drawThis(message.getObject());
+			}
+			break;
 
-			default:
-				fireError(new UnkownMessageType());
-				break;
+		default:
+			fireError(new UnkownMessageType());
+			break;
 		}
 	}
 
@@ -202,33 +221,33 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 	 */
 	protected void handleUserMessages(InAppMessage message) {
 		switch(message.getType()) {
-			case LOADED:
-				if(getDrawManager(DRAWMANAGER_TYPE.SWITCHER) != null) {
-					getDrawManager(DRAWMANAGER_TYPE.SWITCHER).drawThis(message.getObject());
-				}
+		case LOADED:
+			if(getDrawManager(DRAWMANAGER_TYPE.SWITCHER) != null) {
+				getDrawManager(DRAWMANAGER_TYPE.SWITCHER).drawThis(message.getObject());
+			}
 
-				break;
-			case RECEIVED_DATA:
-				if(!(message.getObject() instanceof ArrayList<?>)) {
-					fireError(new WrongObjectType(message.getObject(), ArrayList.class));
-					return;
-				}
+			break;
+		case RECEIVED_DATA:
+			if(!(message.getObject() instanceof ArrayList<?>)) {
+				fireError(new WrongObjectType(message.getObject(), ArrayList.class));
+				return;
+			}
 
-				if(getDrawManager(DRAWMANAGER_TYPE.LOGIN) != null) {
-					getDrawManager(DRAWMANAGER_TYPE.LOGIN).drawThis(message.getObject());
-				}
-				break;
+			if(getDrawManager(DRAWMANAGER_TYPE.LOGIN) != null) {
+				getDrawManager(DRAWMANAGER_TYPE.LOGIN).drawThis(message.getObject());
+			}
+			break;
 
-			case CHANGED:
-				if(getDrawManager(DRAWMANAGER_TYPE.HELPER) != null) {
-					getDrawManager(DRAWMANAGER_TYPE.HELPER).drawThis(message.getObject());
-				}
+		case CHANGED:
+			if(getDrawManager(DRAWMANAGER_TYPE.HELPER) != null) {
+				getDrawManager(DRAWMANAGER_TYPE.HELPER).drawThis(message.getObject());
+			}
 
-				break;
+			break;
 
-			default:
-				fireError(new UnkownMessageType());
-				break;
+		default:
+			fireError(new UnkownMessageType());
+			break;
 		}
 	}
 }

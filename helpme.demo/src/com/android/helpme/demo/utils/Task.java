@@ -126,7 +126,10 @@ public class Task extends Observable{
 	}
 	
 	public boolean isUserInRange(int range) {
-		return userManagerInterface.getThisUser().getDistanceTo(user) <= range;
+		if (answered) {
+			return userManagerInterface.getThisUser().getDistanceTo(user) <= range;
+		}
+		return false;
 	}
 	
 	public boolean isUserInShortDistance(){

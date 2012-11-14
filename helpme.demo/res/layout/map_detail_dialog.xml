@@ -1,41 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+    android:id="@+id/ll_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_gravity="center"
-    android:background="@drawable/maps_help_ee_detail_box_bg"
     android:orientation="horizontal"
     android:paddingLeft="5pt"
-    android:paddingRight="5pt" >
-    
+    android:paddingRight="5pt"
+    android:background="@drawable/maps_help_ee_detail_box_bg" >
+
     <ImageView
-        android:id="@+id/map_pic"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:id="@+id/map_picture"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center"
+        android:layout_margin="10dp"
+        
+        />
 
     <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingLeft="5pt"
-        android:paddingRight="5pt" >
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:orientation="vertical" >
+
+        <View
+            android:id="@+id/view1"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"/>
 
         <TextView
             android:id="@+id/map_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:layout_weight="0"
             android:lines="1"
-            android:textSize="8pt" />
+            android:textSize="6pt" />
 
         <ImageView
             android:id="@+id/iv_seperator1"
             android:layout_width="match_parent"
             android:layout_height="4dp"
             android:layout_marginRight="10dp"
-            android:layout_weight="0"
             android:scaleType="fitXY"
             android:src="@drawable/seperator_line_horizontal" />
 
@@ -44,16 +50,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:layout_weight="0"
             android:lines="1"
-            android:textSize="8pt" />
+            android:textSize="6pt" />
 
         <ImageView
             android:id="@+id/iv_seperator2"
             android:layout_width="match_parent"
             android:layout_height="4dp"
             android:layout_marginRight="10dp"
-            android:layout_weight="0"
             android:scaleType="fitXY"
             android:src="@drawable/seperator_line_horizontal" />
 
@@ -62,18 +66,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:layout_weight="0"
             android:lines="1"
-            android:textSize="8pt" />
+            android:textSize="6pt" />
 
-        <ImageView
-            android:id="@+id/iv_seperator3"
-            android:layout_width="match_parent"
-            android:layout_height="4dp"
-            android:layout_marginRight="10dp"
-            android:layout_weight="0"
-            android:scaleType="fitXY"
-            android:src="@drawable/seperator_line_horizontal" />
+        <View
+            android:id="@+id/view2"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp" />
     </LinearLayout>
 
 </LinearLayout>

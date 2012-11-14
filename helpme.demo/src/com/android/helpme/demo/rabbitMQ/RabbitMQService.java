@@ -84,9 +84,6 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 
 	@Override
 	public void onCreate() {
-		
-		
-		
 //		Notification notification = new Notification.Builder(this)
 //				.setContentTitle("started")
 //				.setOngoing(true).getNotification();
@@ -94,10 +91,11 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 //		startForeground(NOTIFICATION, notification);
 	}
 	
-	@Override
-	public void onStart(Intent intent, int startId) {
-		// TODO Auto-generated method stub
-		super.onStart(intent, startId);
+	private void init() {
+			subscribedChannels = new ConcurrentHashMap<String, Channel>();
+			shutdownReactor = new ShutdownReactor(subscribedChannels);
+			service = this;
+			vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 	}
 
 	@Override
@@ -107,6 +105,9 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 		if (extras != null) {
 			outMessenger = (Messenger) extras.get(MESSENGER);
 			activity = (Class<Activity>) extras.get(ACTIVITY);
+		}
+		if (subscribedChannels == null) {
+			init();
 		}
 		// Return our messenger to the Activity to get commands
 		return inMessenger.getBinder();
@@ -121,20 +122,15 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		subscribedChannels = new ConcurrentHashMap<String, Channel>();
-		shutdownReactor = new ShutdownReactor(subscribedChannels);
-		service = this;
-		vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-		
 		Log.i(LOGTAG, getString(R.string.local_service_started));
 		// We want this service to continue running until it is explicitly
 		// stopped, so return sticky.
 		Toast.makeText(this, R.string.local_service_started, Toast.LENGTH_SHORT).show();
 
-		String text = getString(R.string.waitingtext);
-		String title = getString(R.string.waitingtitle);
-
-		//		showNotification(text,title);
+		if (subscribedChannels == null) {
+			init();
+		}
+		//showNotification(text,title);
 		return START_STICKY;
 	}
 
@@ -180,6 +176,9 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 
 	@Override
 	public Runnable connect() {
+		if (subscribedChannels == null) {
+			init();
+		}
 		return new Runnable() {
 
 			@Override

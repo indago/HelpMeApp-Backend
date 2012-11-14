@@ -87,7 +87,7 @@ public class MapItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 		dialog.setContentView(R.layout.map_detail_dialog);
 
 		ImageView imageView; TextView text;
-		imageView = (ImageView) dialog.findViewById(R.id.map_pic);
+		imageView = (ImageView) dialog.findViewById(R.id.map_picture);
 		imageView.setImageDrawable(item.getDrawable());
 		
 		text = (TextView) dialog.findViewById(R.id.map_name);
