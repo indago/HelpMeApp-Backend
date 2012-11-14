@@ -2,6 +2,7 @@ package com.android.helpme.demo.manager;
 
 import java.util.ArrayList;
 
+import com.android.helpme.demo.exceptions.DontKnowWhatHappenedException;
 import com.android.helpme.demo.exceptions.UnkownMessageType;
 import com.android.helpme.demo.exceptions.WrongObjectType;
 import com.android.helpme.demo.interfaces.DrawManagerInterface;
@@ -42,11 +43,19 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 				fireError(new WrongObjectType(message.getObject(), Position.class));
 				return;
 			}
+			if (!userManagerInterface.isUserSet()) {
+				return;
+			}
+			
 			Position position = (Position) message.getObject();
 			if(userManagerInterface.thisUser() != null) {
 				userManagerInterface.thisUser().updatePosition(position);
 			}else {
+				try{
 				run(positionManagerInterface.stopLocationTracking());
+				}catch(NullPointerException exception){
+					fireError(new DontKnowWhatHappenedException(exception.toString()));
+				}
 			}
 			
 			// draw the position on the map(only helper has a map)
@@ -55,7 +64,7 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 			}
 
 
-			if(historyManagerInterface.getTask() != null) {
+			if(historyManagerInterface.getTask() != null ) {
 				historyManagerInterface.getTask().sendPosition(position);
 				
 				// if our position is in short range

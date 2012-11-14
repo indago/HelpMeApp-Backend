@@ -17,7 +17,7 @@ import com.google.android.maps.OverlayItem;
 public class MapOverlayItem extends OverlayItem {
 
 	private JSONObject jsonObject;
-	private Drawable drawable;
+	private Drawable[] drawable;
 	/**
 	 * @param point
 	 * @param title
@@ -29,7 +29,7 @@ public class MapOverlayItem extends OverlayItem {
 		drawable = null;
 	}
 
-	public MapOverlayItem(GeoPoint point, String title, String snippet, JSONObject jsonObject, Drawable drawable) {
+	public MapOverlayItem(GeoPoint point, String title, String snippet, JSONObject jsonObject, Drawable[] drawable) {
 		super(point, title, snippet);
 		this.jsonObject = jsonObject;
 		this.drawable = drawable;
@@ -43,11 +43,11 @@ public class MapOverlayItem extends OverlayItem {
 		this.jsonObject = jsonObject;
 	}
 
-	public Drawable getDrawable() {
+	public Drawable[] getDrawable() {
 		return drawable;
 	}
 
-	public void setDrawable(Drawable drawable) {
+	public void setDrawable(Drawable[] drawable) {
 		this.drawable = drawable;
 	}
 }

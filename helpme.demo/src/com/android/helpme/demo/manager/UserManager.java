@@ -68,15 +68,28 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 		timer = new Timer();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.android.helpme.demo.interfaces.UserManagerInterface#isUserSet()
+	 */
+	@Override
 	public boolean isUserSet() {
 		return userSet;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.android.helpme.demo.interfaces.UserManagerInterface#getThisUser()
+	 */
 	@Override
 	public UserInterface getThisUser() {
 		return thisUser;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.android.helpme.demo.interfaces.UserManagerInterface#thisUser()
+	 */
 	@Override
 	public UserInterface thisUser() {
 		return thisUser;

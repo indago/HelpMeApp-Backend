@@ -151,15 +151,12 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 	@Override
 	public void stopTask() {
 		if (currentTask != null) {
-			synchronized (currentTask) {
-				if (currentTask.isSuccsessfull()) {
-					arrayList.add(currentTask.stopTask());
-				} else {
-					currentTask.stopUnfinishedTask();
-				}
-				currentTask = null;
+			if (currentTask.isSuccsessfull()) {
+				arrayList.add(currentTask.stopTask());
+			} else {
+				currentTask.stopUnfinishedTask();
 			}
-
+			currentTask = null;
 		}
 	}
 

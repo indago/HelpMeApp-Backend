@@ -44,10 +44,6 @@ public class ShutdownReactor implements ShutdownListener {
 			}
 
 		}
-		synchronized (subscribedChannels) {
-			subscribedChannels.remove(string);
-		}
-
+		subscribedChannels.remove(string);
 	}
-
 }

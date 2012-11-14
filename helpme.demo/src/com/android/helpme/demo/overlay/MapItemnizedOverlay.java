@@ -9,9 +9,12 @@ import org.json.simple.JSONObject;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.Service;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
 import android.text.Html;
+import android.view.LayoutInflater;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -78,7 +81,7 @@ public class MapItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 		items.remove(item);
 	}
 	
-	private Dialog buildDialog(MapOverlayItem item) {
+	private Dialog buildDialog( MapOverlayItem item) {
 		UserInterface userInterface = new User((JSONObject) item.getJsonObject());
 		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
 
@@ -88,7 +91,7 @@ public class MapItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 
 		ImageView imageView; TextView text;
 		imageView = (ImageView) dialog.findViewById(R.id.map_picture);
-		imageView.setImageDrawable(item.getDrawable());
+		imageView.setImageDrawable(new LayerDrawable(item.getDrawable()));
 		
 		text = (TextView) dialog.findViewById(R.id.map_name);
 		text.setText(Html.fromHtml(context.getText(R.string.dialog_name) + userInterface.getName()));

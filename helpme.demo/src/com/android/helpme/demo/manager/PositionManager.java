@@ -17,6 +17,7 @@ import com.android.helpme.demo.utils.position.SimpleSelectionStrategy;
 
 import android.app.Activity;
 import android.content.Context;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -166,11 +167,21 @@ public class PositionManager extends AbstractMessageSystem implements PositionMa
 					@Override
 					public void run() {
 						Log.i(LOGTAG, "requesting Location");
-						locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, manager);
-						locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, manager);
-						started = true;
-						// Looper.myLooper().quit();
-
+						if(locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
+//							Criteria crit = new Criteria();
+//							crit.setPowerRequirement(Criteria.POWER_LOW);
+//							crit.setAccuracy(Criteria.ACCURACY_COARSE);
+//							String provider = locationManager.getBestProvider(crit, false);
+							locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, manager);
+							started = true;
+						}
+						if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+//							Criteria crit2 = new Criteria();
+//							crit2.setAccuracy(Criteria.ACCURACY_FINE);
+//							provider2 = locationManager.getBestProvider(crit2, false);
+							locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, manager);
+							started = true;
+						}
 					}
 				});
 

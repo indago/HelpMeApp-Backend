@@ -32,4 +32,6 @@ public interface UserManagerInterface {
 
 	public Runnable setThisUser(UserInterface userInterface, Context context);
 
+	public boolean isUserSet();
+
 }

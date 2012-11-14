@@ -237,6 +237,8 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 					}
 				} catch(AlreadyClosedException exception){
 					Log.e(LOGTAG, exception.toString());
+					subscribedChannels.remove(exchangeName);
+					
 				}
 				catch (IOException e) {
 					Log.e(LOGTAG, e.toString());
@@ -323,6 +325,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 			outMessenger.send(message);
 		}
 	}
+	
 
 	private void runThread(Runnable runnable){
 		new Thread(runnable).start();
