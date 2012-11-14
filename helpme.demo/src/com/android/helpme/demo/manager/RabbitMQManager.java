@@ -7,6 +7,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import android.app.Activity;
+import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -262,7 +263,21 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 				serviceConnection = createNewServiceConnection();
 				Messenger messenger = new Messenger(handler);
 				intent.putExtra(RabbitMQService.MESSENGER, messenger);
-				activity.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+				activity.bindService(intent, serviceConnection, Service.BIND_ADJUST_WITH_ACTIVITY);
+			}
+		};
+	}
+	
+	@Override
+	public Runnable unbindFromService(final Context context) {
+		return new Runnable() {
+			
+			@Override
+			public void run() {
+				handler = null;
+				context.unbindService(serviceConnection);
+				bound = false;
+				
 			}
 		};
 	}

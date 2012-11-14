@@ -1,7 +1,7 @@
 package com.android.helpme.demo.rabbitMQ;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.io.StringWriter;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,12 +13,10 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
-import android.app.Activity;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.DeadObjectException;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -26,19 +24,15 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.os.Vibrator;
 import android.util.Log;
-import android.widget.Toast;
 
 public class RabbitMQService extends Service implements RabbitMQSerivceInterface{
 	public static final String LOGTAG = RabbitMQService.class.getSimpleName();
 	private static String URL = "ec2-54-247-61-12.eu-west-1.compute.amazonaws.com";
-	private NotificationManager mNM;
 	private ConnectionFactory factory;
 	private Connection connection;
 	private ConcurrentHashMap<String,Channel> subscribedChannels;
 	private Boolean connected = false;
-	private ShutdownReactor shutdownReactor;
 	private RabbitMQService service;
-	private Class<Activity> activity;
 	private Vibrator vibrator;
 
 	public static final String EXCHANGE_NAME = "exchange_name",MESSAGE = "message",DATA_STRING = "data_string", EXCHANGE_TYPE = "exchange_type",TEXT = "text",TITLE = "title";
@@ -84,18 +78,17 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 
 	@Override
 	public void onCreate() {
-//		Notification notification = new Notification.Builder(this)
-//				.setContentTitle("started")
-//				.setOngoing(true).getNotification();
-//		
-//		startForeground(NOTIFICATION, notification);
+		//		Notification notification = new Notification.Builder(this)
+		//				.setContentTitle("started")
+		//				.setOngoing(true).getNotification();
+		//		
+		//		startForeground(NOTIFICATION, notification);
 	}
-	
+
 	private void init() {
-			subscribedChannels = new ConcurrentHashMap<String, Channel>();
-			shutdownReactor = new ShutdownReactor(subscribedChannels);
-			service = this;
-			vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+		subscribedChannels = new ConcurrentHashMap<String, Channel>();
+		service = this;
+		vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 	}
 
 	@Override
@@ -103,8 +96,8 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 		Bundle extras = intent.getExtras();
 		// Get messager from the Activity
 		if (extras != null) {
+			outMessenger = null;
 			outMessenger = (Messenger) extras.get(MESSENGER);
-			activity = (Class<Activity>) extras.get(ACTIVITY);
 		}
 		if (subscribedChannels == null) {
 			init();
@@ -125,13 +118,13 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 		Log.i(LOGTAG, getString(R.string.local_service_started));
 		// We want this service to continue running until it is explicitly
 		// stopped, so return sticky.
-//		Toast.makeText(this, R.string.local_service_started, Toast.LENGTH_SHORT).show();
+		//		Toast.makeText(this, R.string.local_service_started, Toast.LENGTH_SHORT).show();
 
 		if (subscribedChannels == null) {
 			init();
 		}
 		//showNotification(text,title);
-		return START_STICKY;
+		return START_NOT_STICKY;
 	}
 
 	@Override
@@ -148,7 +141,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 			Log.e(LOGTAG, e.toString());
 		}
 		// Tell the user we stopped.
-//		Toast.makeText(this, R.string.local_service_stopped, Toast.LENGTH_SHORT).show();
+		//		Toast.makeText(this, R.string.local_service_stopped, Toast.LENGTH_SHORT).show();
 	}
 
 	@Override
@@ -231,7 +224,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 			@Override
 			public void run() {
 				try {
-					
+
 					Channel channel = subscribedChannels.get(exchangeName);
 					if (channel != null) {
 						channel.basicPublish(exchangeName, "", null, string.getBytes());
@@ -270,7 +263,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 					channel.basicConsume(queueName,new RabbitMQConsumer(channel, service));
 					subscribedChannels.putIfAbsent(exchangeName, channel);
 					Log.i(LOGTAG, "subscribed to " + subscribedChannels.size() +" Channels" +"\n"+ "started subscribtion to : " + exchangeName);
-					
+
 				} catch (IOException e) {
 					Log.e(LOGTAG, e.toString());
 				}
@@ -302,7 +295,6 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 	}
 
 	protected void sendMessage(InAppMessageType type, String string) throws RemoteException{
-
 		Message message = Message.obtain();
 		Bundle bundle = new Bundle();
 		bundle.putString(MESSAGE, type.name());
@@ -314,7 +306,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 			outMessenger.send(message);
 		}
 	}
-	
+
 
 	private void runThread(Runnable runnable){
 		new Thread(runnable).start();

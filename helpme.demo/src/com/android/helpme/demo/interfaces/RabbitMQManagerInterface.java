@@ -85,4 +85,6 @@ public interface RabbitMQManagerInterface {
 	public Runnable showNotification(String text, String title);
 	
 	public Runnable showNotification(UserInterface userInterface);
+	
+	public Runnable unbindFromService(Context context);
 }
