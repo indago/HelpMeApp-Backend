@@ -173,7 +173,10 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 				JSONParser parser = new JSONParser();
 				while ((string = reader.readLine()) != null) {
 					JSONObject jsonObject = (JSONObject) parser.parse(string);
-					arrayList.add(jsonObject);
+					if (arrayList.contains(jsonObject)) {
+						arrayList.add(jsonObject);
+					}
+					
 				}
 				reader.close();
 				inputStream.close();
@@ -199,6 +202,9 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 					writer.write(string);
 				}
 
+				writer.flush();
+				fos.flush();
+				
 				writer.close();
 				fos.close();
 				return true;
@@ -217,6 +223,9 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 			@Override
 			public void run() {
 				if (readHistory()) {
+					if (arrayList.isEmpty()) {
+						return;
+					}
 					fireMessageFromManager(arrayList, InAppMessageType.LOADED);
 				}
 			}
