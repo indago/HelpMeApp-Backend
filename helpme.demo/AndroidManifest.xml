@@ -11,7 +11,7 @@
         android:minSdkVersion="14"
         android:targetSdkVersion="14" />
 
-    <application>
+    <application android:persistent="false" android:largeHeap="true">
         <uses-library android:name="com.google.android.maps" />
         <service
             android:name=".rabbitMQ.RabbitMQService"
