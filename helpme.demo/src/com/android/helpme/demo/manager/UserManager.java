@@ -10,6 +10,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.json.simple.JSONObject;
@@ -108,8 +109,8 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 
 			@Override
 			public void run() {
-				String android_id = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
-				setThisUser(userInterface, android_id);
+				String uuid = UUID.randomUUID().toString();
+				setThisUser(userInterface, uuid);
 				ThreadPool.runTask(saveUserChoice(context));
 				ThreadPool.runTask(clear());
 			}
@@ -338,6 +339,9 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 			public void run() {
 				SharedPreferences preferences = context.getSharedPreferences(CHOOSEN_USER_PREF, 0);
 				deleteUserFromSharedPreference(preferences);
+				thisUser = null;
+				userSet = false;
+				
 			}
 		};
 	}
