@@ -125,7 +125,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 		Log.i(LOGTAG, getString(R.string.local_service_started));
 		// We want this service to continue running until it is explicitly
 		// stopped, so return sticky.
-		Toast.makeText(this, R.string.local_service_started, Toast.LENGTH_SHORT).show();
+//		Toast.makeText(this, R.string.local_service_started, Toast.LENGTH_SHORT).show();
 
 		if (subscribedChannels == null) {
 			init();
@@ -148,7 +148,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 			Log.e(LOGTAG, e.toString());
 		}
 		// Tell the user we stopped.
-		Toast.makeText(this, R.string.local_service_stopped, Toast.LENGTH_SHORT).show();
+//		Toast.makeText(this, R.string.local_service_stopped, Toast.LENGTH_SHORT).show();
 	}
 
 	@Override
@@ -219,6 +219,7 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 				}
 				subscribedChannels.clear();
 				connected = false;
+				Log.i(LOGTAG, "disconnected");
 			}
 		};
 	}
@@ -230,15 +231,15 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 			@Override
 			public void run() {
 				try {
-					Log.i(LOGTAG, "sending");
+					
 					Channel channel = subscribedChannels.get(exchangeName);
 					if (channel != null) {
 						channel.basicPublish(exchangeName, "", null, string.getBytes());
 					}
+					Log.i(LOGTAG, "send to: "+exchangeName);
 				} catch(AlreadyClosedException exception){
-					Log.e(LOGTAG, exception.toString());
+					Log.e(LOGTAG, exchangeName +" : " +exception.toString());
 					subscribedChannels.remove(exchangeName);
-					
 				}
 				catch (IOException e) {
 					Log.e(LOGTAG, e.toString());
@@ -256,33 +257,19 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 			@Override
 			public void run() {
 				if (!connected) {
-					runThread(connect());
-					long time = System.currentTimeMillis();
-					while (System.currentTimeMillis() - time < 200){
-
-					}
-					if (!connected) {
-						//TODO
-//						Toast.makeText(service, "No internet Connection", 10000);
-						return;
-					}
+					return;
 				}
 				try {
-					
-					if (subscribedChannels.isEmpty() && exchangeName.equalsIgnoreCase("main")) {
-						runThread(subscribeToChannel("main", "fanout"));
-					}
-					
 					// we create a new channel 
 					Channel channel = connection.createChannel();
 					channel.exchangeDeclare(exchangeName, type);
 					String queueName = channel.queueDeclare().getQueue();
 					channel.queueBind(queueName,exchangeName , "");
-					channel.addShutdownListener(shutdownReactor);
 
 					// we define what happens if we recieve a new Message
 					channel.basicConsume(queueName,new RabbitMQConsumer(channel, service));
 					subscribedChannels.putIfAbsent(exchangeName, channel);
+					Log.i(LOGTAG, "subscribed to " + subscribedChannels.size() +" Channels" +"\n"+ "started subscribtion to : " + exchangeName);
 					
 				} catch (IOException e) {
 					Log.e(LOGTAG, e.toString());
@@ -301,6 +288,8 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 				if (channel != null ) {
 					try {
 						channel.close(0,exchangeName);
+						subscribedChannels.remove(exchangeName);
+						Log.i(LOGTAG, "subscribed to " + subscribedChannels.size() +" Channels" + "\n"+ "ended subscribtion to : " +exchangeName);
 					}catch(AlreadyClosedException e){
 						Log.e(LOGTAG, e.toString());
 						subscribedChannels.remove(exchangeName);
