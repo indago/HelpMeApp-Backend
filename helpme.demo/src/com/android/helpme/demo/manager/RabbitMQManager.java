@@ -69,7 +69,6 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 			}
 			fireMessage(message);
 		}
-		
 	}
 
 	/*
@@ -240,7 +239,6 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 					Log.i(LOGTAG, "Binding of Service");
 					// we create a new Messanger with our defined handler
 					rabbitMQService = new RabbitMQService(context);
-					rabbitMQService.addObserver(rabbitMQManager);
 					bound = true;
 					fireMessageFromManager(rabbitMQService, InAppMessageType.BOUND_TO_SERVICE);
 				}
@@ -257,7 +255,11 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 				Log.i(LOGTAG, "unBinding of Service");
 				bound = false;
 				rabbitMQService.deleteObservers();
-				
+				if (rabbitMQService.isConnected()) {
+					rabbitMQService.disconnect().run();
+				}
+				rabbitMQService = null;
+				fireMessageFromManager(null, InAppMessageType.UNBOUND_FROM_SERVICE);
 			}
 		};
 	}

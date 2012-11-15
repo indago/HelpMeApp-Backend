@@ -39,11 +39,7 @@ public class RabbitMQConsumer extends DefaultConsumer {
 	@Override
 	public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties properties, byte[] body) throws IOException {
 		String string = new String(body);
-		try {
-			rabbitMQSerivce.sendMessage(InAppMessageType.RECEIVED_DATA, string);
-		} catch (RemoteException e) {
-			Log.e(LOGTAG, e.toString());
-		}
+		rabbitMQSerivce.sendMessage(InAppMessageType.RECEIVED_DATA, string);
 	}
 
 }

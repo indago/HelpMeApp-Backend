@@ -14,12 +14,6 @@
 
     <application android:persistent="false" android:largeHeap="true" android:debuggable="true">
         <uses-library android:name="com.google.android.maps" />
-        <service
-            android:name=".rabbitMQ.RabbitMQService"
-            android:enabled="true"
-            android:exported="true"
-            android:process=":remote" >
-        </service>
     </application>
 
 </manifest>

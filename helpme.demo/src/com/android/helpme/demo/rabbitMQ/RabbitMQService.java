@@ -37,6 +37,11 @@ public class RabbitMQService extends Observable implements RabbitMQSerivceInterf
 	private Connection connection;
 	private ConcurrentHashMap<String,Channel> subscribedChannels;
 	private Boolean connected = false;
+	public Boolean isConnected() {
+		return connected;
+	}
+
+
 	private Vibrator vibrator;
 	private RabbitMQService service;
 
@@ -78,9 +83,10 @@ public class RabbitMQService extends Observable implements RabbitMQSerivceInterf
 	}
 
 	public RabbitMQService(Context context) {
-			subscribedChannels = new ConcurrentHashMap<String, Channel>();
-			vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-			service = this;
+		subscribedChannels = new ConcurrentHashMap<String, Channel>();
+		vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+		addObserver(RabbitMQManager.getInstance());
+		service = this;
 	}
 
 	@Override
@@ -109,9 +115,7 @@ public class RabbitMQService extends Observable implements RabbitMQSerivceInterf
 					Log.i(LOGTAG, "connected to rabbitMQ");
 				} catch (IOException e) {
 					Log.e(LOGTAG, e.toString());
-				} catch (RemoteException e) {
-					Log.e(LOGTAG, e.toString());
-				}
+				} 
 
 			}
 		};
@@ -135,8 +139,7 @@ public class RabbitMQService extends Observable implements RabbitMQSerivceInterf
 				try {
 					connection.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					Log.e(LOGTAG, e.toString());
 				}
 				Log.i(LOGTAG, "disconnected");
 			}
@@ -219,7 +222,7 @@ public class RabbitMQService extends Observable implements RabbitMQSerivceInterf
 		};
 	}
 
-	protected void sendMessage(InAppMessageType type, String string) throws RemoteException{
+	protected void sendMessage(InAppMessageType type, String string){
 		Message message = Message.obtain();
 		Bundle bundle = new Bundle();
 		bundle.putString(MESSAGE, type.name());
@@ -227,13 +230,8 @@ public class RabbitMQService extends Observable implements RabbitMQSerivceInterf
 			bundle.putString(DATA_STRING, string);
 		}
 		message.setData(bundle);
-		//		if (outMessenger != null) {
-		//			outMessenger.send(message);
-		//		}
-		Log.i(LOGTAG, "Sending to " +countObservers() + " Observers");
-		hasChanged();
-		notifyObservers(message);
-	}
+		RabbitMQManager.getInstance().update(service, message);
+		}
 
 
 	private void runThread(Runnable runnable){
