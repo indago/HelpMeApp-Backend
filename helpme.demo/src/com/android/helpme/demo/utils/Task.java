@@ -172,6 +172,8 @@ public class Task extends Observable{
 	public JSONObject stopTask() {
 		run(positionManagerInterface.stopLocationTracking());
 		sendPosition(user.getPosition());
+		
+		sendPosition(user.getPosition());
 		run(rabbitMQManagerInterface.endSubscribtionToChannel(exchangeName));
 		JSONObject jsonObject = new JSONObject();
 		jsonObject.put(USER, user.getJsonObject());

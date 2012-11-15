@@ -1,40 +1,34 @@
 package com.android.helpme.demo.manager;
 
 import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import android.app.Activity;
-import android.app.Service;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.util.Log;
 
-import com.android.helpme.demo.R;
 import com.android.helpme.demo.exceptions.UnboundException;
-import com.android.helpme.demo.exceptions.WrongObjectType;
 import com.android.helpme.demo.interfaces.RabbitMQManagerInterface;
 import com.android.helpme.demo.interfaces.UserInterface;
-import com.android.helpme.demo.interfaces.UserManagerInterface;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystemInterface;
 import com.android.helpme.demo.messagesystem.InAppMessage;
 import com.android.helpme.demo.messagesystem.InAppMessageType;
 import com.android.helpme.demo.rabbitMQ.RabbitMQService;
-import com.android.helpme.demo.rabbitMQ.RabbitMQServiceMessages;
 import com.android.helpme.demo.utils.ThreadPool;
 import com.android.helpme.demo.utils.User;
 
-public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQManagerInterface {
+public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQManagerInterface, Observer{
 	public static final String LOGTAG = RabbitMQManager.class.getSimpleName();
 	private static RabbitMQManager rabbitMQManager;
 	private ArrayList<String> exchangeNames;
@@ -44,6 +38,7 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 	private JSONParser parser;
 	private Handler handler;
 	private ServiceConnection serviceConnection;
+	private RabbitMQService rabbitMQService;
 
 	public static RabbitMQManager getInstance() {
 		if (rabbitMQManager == null) {
@@ -51,47 +46,30 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 		}
 		return rabbitMQManager;
 	}
-
-	private Handler createNewHandler() {
-		return new Handler() {
-			public void handleMessage(android.os.Message msg) {
-				Bundle bundle = msg.getData();
-				InAppMessageType type = InAppMessageType.valueOf(bundle.getString(RabbitMQService.MESSAGE));
-				InAppMessage message = new InAppMessage(getManager(), null, type);
-				if (type == InAppMessageType.RECEIVED_DATA) {
-					JSONObject object;
-					try {
-						object = (JSONObject) parser.parse(bundle.getString(RabbitMQService.DATA_STRING));
-						message.setObject(new User(object));
-					} catch (ParseException e) {
-						fireError(e);
-					}
-
+	/*
+	 * (non-Javadoc)
+	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
+	 */
+	@Override
+	public void update(Observable observable, Object data) {
+		if (data instanceof Message) {
+			Message msg = (Message) data;
+			Bundle bundle = msg.getData();
+			InAppMessageType type = InAppMessageType.valueOf(bundle.getString(RabbitMQService.MESSAGE));
+			InAppMessage message = new InAppMessage(getManager(), null, type);
+			if (type == InAppMessageType.RECEIVED_DATA) {
+				JSONObject object;
+				try {
+					object = (JSONObject) parser.parse(bundle.getString(RabbitMQService.DATA_STRING));
+					message.setObject(new User(object));
+				} catch (ParseException e) {
+					fireError(e);
 				}
-				fireMessage(message);
-			};
-		};
-	}
-
-	private ServiceConnection createNewServiceConnection() {
-		return new ServiceConnection() {
-
-			@Override
-			public void onServiceDisconnected(ComponentName name) {
-				messenger = null;
-				bound = false;
-				fireMessageFromManager(null, InAppMessageType.UNBOUND_FROM_SERVICE);
 
 			}
-
-			@Override
-			public void onServiceConnected(ComponentName name, IBinder service) {
-				messenger = new Messenger(service);
-				bound = true;
-				fireMessageFromManager(messenger, InAppMessageType.BOUND_TO_SERVICE);
-				run(connect());
-			}
-		};
+			fireMessage(message);
+		}
+		
 	}
 
 	/*
@@ -134,7 +112,6 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 		exchangeNames = new ArrayList<String>();
 		bound = false;
 		parser = new JSONParser();
-		// TODO Binding to service
 	}
 
 	/*
@@ -249,21 +226,24 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 		};
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.android.helpme.demo.interfaces.RabbitMQManagerInterface#bindToService(android.content.Context)
+	 */
 	@Override
-	public Runnable bindToService(final Activity activity) {
+	public Runnable bindToService(final Context context) {
 		return new Runnable() {
 
 			@Override
 			public void run() {
-				Intent intent = null;
-				Context context = activity.getApplicationContext();
-				intent = new Intent(context, RabbitMQService.class);
-				// we create a new Messanger with our defined handler
-				handler = createNewHandler();
-				serviceConnection = createNewServiceConnection();
-				Messenger messenger = new Messenger(handler);
-				intent.putExtra(RabbitMQService.MESSENGER, messenger);
-				context.bindService(intent, serviceConnection, Service.BIND_ADJUST_WITH_ACTIVITY);
+				if (!bound) {
+					Log.i(LOGTAG, "Binding of Service");
+					// we create a new Messanger with our defined handler
+					rabbitMQService = new RabbitMQService(context);
+					rabbitMQService.addObserver(rabbitMQManager);
+					bound = true;
+					fireMessageFromManager(rabbitMQService, InAppMessageType.BOUND_TO_SERVICE);
+				}
 			}
 		};
 	}
@@ -274,9 +254,9 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 			
 			@Override
 			public void run() {
-				handler = null;
-				context.unbindService(serviceConnection);
+				Log.i(LOGTAG, "unBinding of Service");
 				bound = false;
+				rabbitMQService.deleteObservers();
 				
 			}
 		};
@@ -306,7 +286,7 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 		if (bound) {
 			Message message = new Message();
 			message.setData(bundle);
-			messenger.send(message);
+			rabbitMQService.handleIncomingMessage(message);
 		} else {
 			fireError(new UnboundException());
 		}

@@ -2,11 +2,14 @@ package com.android.helpme.demo.rabbitMQ;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.android.helpme.demo.R;
 import com.android.helpme.demo.interfaces.RabbitMQSerivceInterface;
+import com.android.helpme.demo.manager.RabbitMQManager;
 import com.android.helpme.demo.messagesystem.InAppMessageType;
 import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
@@ -14,7 +17,9 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Binder;
 import android.os.Bundle;
 import android.os.DeadObjectException;
 import android.os.Handler;
@@ -25,153 +30,68 @@ import android.os.RemoteException;
 import android.os.Vibrator;
 import android.util.Log;
 
-public class RabbitMQService extends Service implements RabbitMQSerivceInterface{
+public class RabbitMQService extends Observable implements RabbitMQSerivceInterface {
 	public static final String LOGTAG = RabbitMQService.class.getSimpleName();
 	private static String URL = "ec2-54-247-61-12.eu-west-1.compute.amazonaws.com";
 	private ConnectionFactory factory;
 	private Connection connection;
 	private ConcurrentHashMap<String,Channel> subscribedChannels;
 	private Boolean connected = false;
-	private RabbitMQService service;
 	private Vibrator vibrator;
+	private RabbitMQService service;
 
 	public static final String EXCHANGE_NAME = "exchange_name",MESSAGE = "message",DATA_STRING = "data_string", EXCHANGE_TYPE = "exchange_type",TEXT = "text",TITLE = "title";
 	public static final String MESSENGER = "MESSENGER", ACTIVITY = "ACTIVITY";
 
 	// Used to receive messages from the Activity
-	final Messenger inMessenger = new Messenger(new IncomingHandler());
+	//	private final Messenger inMessenger = new Messenger(new IncomingHandler());
 	// Use to send message to the Activity
-	private Messenger outMessenger;
+	//	private Messenger outMessenger;
 
-	class IncomingHandler extends Handler {
-		@Override
-		public void handleMessage(Message msg) {
-			Log.i(LOGTAG, "Got message");
-			Bundle bundle = msg.getData();
-			InAppMessageType type = InAppMessageType.valueOf(bundle.getString(MESSAGE));
-			switch (type) {
-			case CONNECTED:
-				runThread(connect());
-				break;
-			case SUBSCRIBE:
-				runThread(subscribeToChannel(bundle.getString(EXCHANGE_NAME), bundle.getString(EXCHANGE_TYPE)));
-				break;
-			case SEND:
-				runThread(sendStringOnChannel(bundle.getString(DATA_STRING), bundle.getString(EXCHANGE_NAME)));
-				break;
-			case SUBSCRIBTION_ENDED:
-				runThread(endSubscribtionToChannel(bundle.getString(EXCHANGE_NAME)));
-				break;
-			case NOTIFICATION:
-				showNotification(bundle.getString(TEXT), bundle.getString(TITLE));
-				break;
 
-			default:
-				Log.e(LOGTAG, "recevied Message with wrong Type");
-				break;
-			}
+	public void handleIncomingMessage(Message msg) {
+
+		Bundle bundle = msg.getData();
+		InAppMessageType type = InAppMessageType.valueOf(bundle.getString(MESSAGE));
+		Log.i(LOGTAG, "Got message: "+ type);
+		switch (type) {
+		case CONNECTED:
+			runThread(connect());
+			break;
+		case SUBSCRIBE:
+			runThread(subscribeToChannel(bundle.getString(EXCHANGE_NAME), bundle.getString(EXCHANGE_TYPE)));
+			break;
+		case SEND:
+			runThread(sendStringOnChannel(bundle.getString(DATA_STRING), bundle.getString(EXCHANGE_NAME)));
+			break;
+		case SUBSCRIBTION_ENDED:
+			runThread(endSubscribtionToChannel(bundle.getString(EXCHANGE_NAME)));
+			break;
+		case NOTIFICATION:
+			showNotification(bundle.getString(TEXT), bundle.getString(TITLE));
+			break;
+
+		default:
+			Log.e(LOGTAG, "recevied Message with wrong Type");
+			break;
 		}
 	}
-	// Unique Identification Number for the Notification.
-	// We use it on Notification start, and to cancel it.
-	private int NOTIFICATION = R.string.local_service_started;
 
-	@Override
-	public void onCreate() {
-		//		Notification notification = new Notification.Builder(this)
-		//				.setContentTitle("started")
-		//				.setOngoing(true).getNotification();
-		//		
-		//		startForeground(NOTIFICATION, notification);
-	}
-
-	private void init() {
-		subscribedChannels = new ConcurrentHashMap<String, Channel>();
-		service = this;
-		vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-	}
-
-	@Override
-	public IBinder onBind(Intent intent) {
-		Bundle extras = intent.getExtras();
-		// Get messager from the Activity
-		if (extras != null) {
-			outMessenger = null;
-			outMessenger = (Messenger) extras.get(MESSENGER);
-		}
-		if (subscribedChannels == null) {
-			init();
-		}
-		// Return our messenger to the Activity to get commands
-		return inMessenger.getBinder();
-	}
-
-	@Override
-	public boolean onUnbind(Intent intent) {
-		runThread(disconnect());
-		outMessenger = null;
-		return false;
-	}
-
-	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.i(LOGTAG, getString(R.string.local_service_started));
-		// We want this service to continue running until it is explicitly
-		// stopped, so return sticky.
-		//		Toast.makeText(this, R.string.local_service_started, Toast.LENGTH_SHORT).show();
-
-		if (subscribedChannels == null) {
-			init();
-		}
-		//showNotification(text,title);
-		return START_NOT_STICKY;
-	}
-
-	@Override
-	public void onDestroy() {
-		Log.i(LOGTAG, getString(R.string.local_service_stopped));
-		//		mNM.cancelAll();
-		runThread(disconnect());
-		while (connected) {
-			;
-		}
-		try {
-			connection.close();
-		} catch (IOException e) {
-			Log.e(LOGTAG, e.toString());
-		}
-		// Tell the user we stopped.
-		//		Toast.makeText(this, R.string.local_service_stopped, Toast.LENGTH_SHORT).show();
+	public RabbitMQService(Context context) {
+			subscribedChannels = new ConcurrentHashMap<String, Channel>();
+			vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+			service = this;
 	}
 
 	@Override
 	public void showNotification(String text, String title) {
-
-		// The PendingIntent to launch our activity if the user selects this notification
-		//		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-		//				new Intent(this, SwitcherActivity.class), 0);
-
 		long[] pattern = {0,200,200,200,200};
 		vibrator.vibrate(pattern, -1);
 
-		//		Notification notification = new Notification.Builder(this)
-		//		.setContentTitle(title)
-		//		.setContentText(text)
-		//		.setSmallIcon(R.drawable.ic_launcher)
-		//		.setContentIntent(contentIntent)
-		//		.setOngoing(true)
-		//		.build();
-		//
-		//
-		//		// Send the notification.
-		//		mNM.notify(NOTIFICATION, notification);
 	}
 
 	@Override
 	public Runnable connect() {
-		if (subscribedChannels == null) {
-			init();
-		}
 		return new Runnable() {
 
 			@Override
@@ -184,9 +104,9 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 					factory.setHost(URL);
 					connection = factory.newConnection();
 					connected = connection.isOpen();
-					Log.i(LOGTAG, "connected to rabbitMQ");
 					sendMessage(InAppMessageType.CONNECTED, null);
 
+					Log.i(LOGTAG, "connected to rabbitMQ");
 				} catch (IOException e) {
 					Log.e(LOGTAG, e.toString());
 				} catch (RemoteException e) {
@@ -212,6 +132,12 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 				}
 				subscribedChannels.clear();
 				connected = false;
+				try {
+					connection.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				Log.i(LOGTAG, "disconnected");
 			}
 		};
@@ -244,7 +170,6 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 
 	@Override
 	public Runnable subscribeToChannel(final String exchangeName,final String type) {
-
 		return new Runnable() {
 
 			@Override
@@ -302,9 +227,12 @@ public class RabbitMQService extends Service implements RabbitMQSerivceInterface
 			bundle.putString(DATA_STRING, string);
 		}
 		message.setData(bundle);
-		if (outMessenger != null) {
-			outMessenger.send(message);
-		}
+		//		if (outMessenger != null) {
+		//			outMessenger.send(message);
+		//		}
+		Log.i(LOGTAG, "Sending to " +countObservers() + " Observers");
+		hasChanged();
+		notifyObservers(message);
 	}
 
 

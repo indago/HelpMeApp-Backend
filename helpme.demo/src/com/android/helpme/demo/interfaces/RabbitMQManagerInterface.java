@@ -29,7 +29,7 @@ public interface RabbitMQManagerInterface {
 	 * @param context
 	 * @return
 	 */
-	public Runnable bindToService(Activity activity);
+	public Runnable bindToService(Context context);
 
 	/**
 	 * Sends {@link String} on main channel with the name "main"
