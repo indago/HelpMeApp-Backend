@@ -15,6 +15,8 @@ import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Consumer;
+import com.rabbitmq.client.ShutdownSignalException;
 
 import android.app.Service;
 import android.content.Context;
@@ -208,15 +210,23 @@ public class RabbitMQService extends Observable implements RabbitMQSerivceInterf
 				Channel channel = subscribedChannels.get(exchangeName);
 				if (channel != null ) {
 					try {
-						channel.close(0,exchangeName);
+						String queueName = channel.queueDeclare().getQueue();
+						channel.queueUnbind(queueName, exchangeName, "");
+//						channel.basicConsume(queueName, arg1)
+						
+//						channel.close(0,exchangeName);
 						subscribedChannels.remove(exchangeName);
+						channel = null;
 						Log.i(LOGTAG, "subscribed to " + subscribedChannels.size() +" Channels" + "\n"+ "ended subscribtion to : " +exchangeName);
 					}catch(AlreadyClosedException e){
 						Log.e(LOGTAG, e.toString());
 						subscribedChannels.remove(exchangeName);
 					} catch (IOException e) {
 						Log.e(LOGTAG, e.toString());
-					} 
+					} catch (ShutdownSignalException e) {
+						Log.e(LOGTAG, e.toString());
+						
+					}
 				}
 			}
 		};

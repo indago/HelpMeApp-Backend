@@ -200,9 +200,9 @@ public class PositionManager extends AbstractMessageSystem implements PositionMa
 
 			@Override
 			public void run() {
-				if (!started) {
-					return;
-				}
+//				if (!started) {
+//					return;
+//				}
 //				if (Looper.myLooper() == null) {
 //					Looper.prepare();
 //				}

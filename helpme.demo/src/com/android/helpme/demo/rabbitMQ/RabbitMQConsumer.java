@@ -27,19 +27,22 @@ import com.rabbitmq.client.AMQP.BasicProperties;
 public class RabbitMQConsumer extends DefaultConsumer {
 	private static final String LOGTAG = RabbitMQConsumer.class.getSimpleName();
 	private RabbitMQService rabbitMQSerivce;
+	private Channel channel;
 
 	/**
 	 * @param channel
 	 */
 	public RabbitMQConsumer(Channel channel, RabbitMQService service) {
 		super(channel);
+		this.channel = channel;
 		this.rabbitMQSerivce = service;
 	}
-	
+
 	@Override
 	public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties properties, byte[] body) throws IOException {
 		String string = new String(body);
 		rabbitMQSerivce.sendMessage(InAppMessageType.RECEIVED_DATA, string);
+		Log.i(LOGTAG, "New Message on: " +channel.toString());
 	}
 
 }
