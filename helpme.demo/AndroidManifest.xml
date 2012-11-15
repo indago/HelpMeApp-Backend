@@ -10,6 +10,7 @@
     <uses-sdk
         android:minSdkVersion="14"
         android:targetSdkVersion="14" />
+    <uses-permission android:name="android.permission.CLEAR_APP_CACHE"/>
 
     <application android:persistent="false" android:largeHeap="true">
         <uses-library android:name="com.google.android.maps" />
