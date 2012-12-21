@@ -5,7 +5,6 @@ package com.android.helpme.demo.overlay;
 
 import java.util.ArrayList;
 
-import org.json.simple.JSONObject;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -82,7 +81,7 @@ public class MapItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 	}
 	
 	private Dialog buildDialog( MapOverlayItem item) {
-		UserInterface userInterface = new User((JSONObject) item.getJsonObject());
+		UserInterface userInterface = new User(item.getElement());
 		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
 
 		Dialog dialog = dialogBuilder.show();

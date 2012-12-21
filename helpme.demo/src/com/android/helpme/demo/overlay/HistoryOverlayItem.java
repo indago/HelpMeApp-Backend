@@ -3,7 +3,7 @@
  */
 package com.android.helpme.demo.overlay;
 
-import org.json.simple.JSONObject;
+import org.jdom2.Element;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.OverlayItem;
@@ -13,7 +13,7 @@ import com.google.android.maps.OverlayItem;
  *
  */
 public class HistoryOverlayItem extends OverlayItem {
-	private JSONObject jsonObject;
+	private Element element;
 
 	/**
 	 * @param geoPoint
@@ -22,20 +22,20 @@ public class HistoryOverlayItem extends OverlayItem {
 	 */
 	public HistoryOverlayItem(GeoPoint geoPoint, String title, String text) {
 		super(geoPoint, title,text);
-		jsonObject = null;
+		element = null;
 	}
 	
-	public HistoryOverlayItem(GeoPoint geoPoint, String title, String text, JSONObject jsonObject) {
+	public HistoryOverlayItem(GeoPoint geoPoint, String title, String text, Element element) {
 		super(geoPoint, title, text);
-		this.jsonObject = jsonObject;
+		this.element = element;
 	}
 
-	public JSONObject getJsonObject() {
-		return jsonObject;
+	public Element getElement() {
+		return element;
 	}
 
-	public void setJsonObject(JSONObject jsonObject) {
-		this.jsonObject = jsonObject;
+	public void setElement(Element element) {
+		this.element = element;
 	}
 	
 	

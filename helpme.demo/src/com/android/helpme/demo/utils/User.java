@@ -1,7 +1,7 @@
 package com.android.helpme.demo.utils;
 
+import org.jdom2.Element;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -45,15 +45,15 @@ public class User implements UserInterface {
 		this.age = age;
 		this.gender = gender;
 	}
-
-	public User(JSONObject object) {
-		this.name = (String) object.get(NAME);
-		this.helfer = (Boolean) object.get(HELFER);
-		this.id = (String) object.get(ID);
-		this.pic = (String) object.get(PICTURE);
-		this.age = new Integer(object.get(AGE).toString());
-		this.gender  = ((String)object.get(GENDER));
-		if (object.get(POSITION) != null) {
+	
+	public User(Element object) {
+		this.name = (String) object.getAttributeValue(NAME);
+		this.helfer = new Boolean(object.getAttributeValue(HELFER));
+		this.id = (String) object.getAttributeValue(ID);
+		this.pic = (String) object.getAttributeValue(PICTURE);
+		this.age = new Integer(object.getAttributeValue(AGE).toString());
+		this.gender  = ((String)object.getAttributeValue(GENDER));
+		if (object.getChild(POSITION) != null) {
 			this.position = new Position(object);
 		}
 	}
@@ -136,17 +136,17 @@ public class User implements UserInterface {
 	 * @see com.android.helpme.demo.utils.UserInterface#getJsonObject()
 	 */
 	@Override
-	public JSONObject getJsonObject() {
-		JSONObject object = new JSONObject();
-		object.put(NAME, name);
-		object.put(HELFER, helfer);
+	public Element getElement() {
+		Element object = new Element(Task.USER);
+		object.setAttribute(NAME, name);
+		object.setAttribute(HELFER, helfer.toString());
 		if (position != null) {
-			object.put(POSITION, position.getJSON());
+			object.addContent(position.getElement());
 		}
-		object.put(ID, id);
-		object.put(PICTURE, pic);
-		object.put(AGE, age);
-		object.put(GENDER, gender);
+		object.setAttribute(ID, id);
+		object.setAttribute(PICTURE, pic);
+		object.setAttribute(AGE, age.toString());
+		object.setAttribute(GENDER, gender);
 		return object;
 	}
 	/*
@@ -205,7 +205,7 @@ public class User implements UserInterface {
 	}
 	
 	@Override
-	public UserInterface getUser(JSONObject object) {
+	public UserInterface getUser(Element object) {
 		return new User(object);
 	}
 }

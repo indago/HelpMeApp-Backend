@@ -1,6 +1,6 @@
 package com.android.helpme.demo.interfaces;
 
-import org.json.simple.JSONObject;
+import org.jdom2.Element;
 
 import com.google.android.maps.GeoPoint;
 
@@ -24,5 +24,7 @@ public interface PositionInterface {
 
 	public double calculateSphereDistance(PositionInterface other);
 
-	public JSONObject getJSON();
+	public Element getElement();
+	
+	public Element getElementAs(String string);
 }

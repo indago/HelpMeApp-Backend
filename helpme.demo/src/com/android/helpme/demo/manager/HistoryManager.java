@@ -11,21 +11,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
-import org.jdom2.DataConversionException;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
-import org.jdom2.filter.ElementFilter;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import android.content.Context;
 
 import com.android.helpme.demo.interfaces.HistoryManagerInterface;
@@ -48,7 +42,6 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 	private static final String FILENAME = "history_file";
 	private Context context;
 	private boolean writing = false;
-	private JSONParser jsonParser;
 	private Element root;
 	private Document document;
 
@@ -64,7 +57,6 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 	 */
 	private HistoryManager() {
 		context = null;
-		jsonParser = new JSONParser();
 		root = new Element("root");
 		document = new Document(root);
 	}
@@ -111,18 +103,8 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 
 			@Override
 			public void run() {
-				try{
-					ArrayList<JSONObject> arrayList = new ArrayList<JSONObject>();
-					List<Element> list = root.getChildren();
-					for (Element element : list) {
-						arrayList.add(xmlToJsonObject(element));
-					}
-					fireMessageFromManager(arrayList, InAppMessageType.HISTORY);
-				}catch(ParseException e){
-					fireError(e);
-				} catch (DataConversionException e) {
-					fireError(e);
-				}
+				ArrayList<Element> arrayList = new ArrayList<Element>(root.getChildren());
+				fireMessageFromManager(arrayList, InAppMessageType.HISTORY);
 			}
 		};
 
@@ -174,8 +156,7 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 	public void stopTask() {
 		if (currentTask != null) {
 			if (currentTask.isSuccsessfull()) {
-				JSONObject jsonObject = currentTask.stopTask(); 
-				root.addContent(jsonToXml(jsonObject));
+				root.addContent(currentTask.stopTask());
 				writeHistory();
 			} else {
 				currentTask.stopUnfinishedTask();
@@ -192,21 +173,19 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 			}
 			try {
 
-				FileInputStream inputStream = new FileInputStream(file);
-				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-				String string = null;
-				String text = new String();
-				JSONParser parser = new JSONParser();
-				while ((string = reader.readLine()) != null) {
-					text += string; 
-
-				}
-				reader.close();
+//				FileInputStream inputStream = new FileInputStream(file);
+//				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+//				String string = null;
+//				String text = new String();
+//				while ((string = reader.readLine()) != null) {
+//					text += string; 
+//				}
+//				reader.close();
 
 				SAXBuilder saxBuilder = new SAXBuilder();
 				document = saxBuilder.build(file);
 				root = document.getRootElement();
-				
+
 				//				SAXParser saxParser = saxParserFactory.newSAXParser();
 				//				HistorySaxHandler handler = new HistorySaxHandler();
 				//				context.getFileStreamPath(FILENAME);
@@ -223,37 +202,37 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 		return false;
 	}
 
-	private JSONObject xmlToJsonObject(Element element) throws ParseException, DataConversionException {
-		JSONObject jsonObject = new JSONObject();
-		jsonObject.put(Task.USER,  (JSONObject) jsonParser.parse(element.getChild(Task.USER).getText()));
-		jsonObject.put(Task.START_POSITION, (JSONObject) jsonParser.parse(element.getChild(Task.START_POSITION).getText()));
-		jsonObject.put(Task.STOP_POSITION, (JSONObject) jsonParser.parse(element.getChild(Task.STOP_POSITION).getText()));
-
-		jsonObject.put(Task.START_TIME, element.getAttribute(Task.START_TIME).getLongValue());
-		jsonObject.put(Task.STOP_TIME, element.getAttribute(Task.STOP_TIME).getLongValue());
-
-		return jsonObject;
-	}
-
-	private Element jsonToXml(JSONObject jsonObject){
-		Element historyelement = new Element(Task.TASK);
-
-		Element element = new Element(Task.USER);
-		element.setText(jsonObject.get(Task.USER).toString());
-		historyelement.addContent(element);
-
-		element = new Element(Task.START_POSITION);
-		element.setText(jsonObject.get(Task.START_POSITION).toString());
-		historyelement.addContent(element);
-
-		element = new Element(Task.STOP_POSITION);
-		element.setText(jsonObject.get(Task.STOP_POSITION).toString());
-		historyelement.addContent(element);
-
-		historyelement.setAttribute(Task.START_TIME, jsonObject.get(Task.START_TIME).toString());
-		historyelement.setAttribute(Task.STOP_TIME, jsonObject.get(Task.STOP_TIME).toString());
-		return historyelement;
-	}
+	//	private JSONObject xmlToJsonObject(Element element) throws ParseException, DataConversionException {
+	//		JSONObject jsonObject = new JSONObject();
+	//		jsonObject.put(Task.USER,  (JSONObject) jsonParser.parse(element.getChild(Task.USER).getText()));
+	//		jsonObject.put(Task.START_POSITION, (JSONObject) jsonParser.parse(element.getChild(Task.START_POSITION).getText()));
+	//		jsonObject.put(Task.STOP_POSITION, (JSONObject) jsonParser.parse(element.getChild(Task.STOP_POSITION).getText()));
+	//
+	//		jsonObject.put(Task.START_TIME, element.getAttribute(Task.START_TIME).getLongValue());
+	//		jsonObject.put(Task.STOP_TIME, element.getAttribute(Task.STOP_TIME).getLongValue());
+	//
+	//		return jsonObject;
+	//	}
+	//
+	//	private Element jsonToXml(JSONObject jsonObject){
+	//		Element historyelement = new Element(Task.TASK);
+	//
+	//		Element element = new Element(Task.USER);
+	//		element.setText(jsonObject.get(Task.USER).toString());
+	//		historyelement.addContent(element);
+	//
+	//		element = new Element(Task.START_POSITION);
+	//		element.setText(jsonObject.get(Task.START_POSITION).toString());
+	//		historyelement.addContent(element);
+	//
+	//		element = new Element(Task.STOP_POSITION);
+	//		element.setText(jsonObject.get(Task.STOP_POSITION).toString());
+	//		historyelement.addContent(element);
+	//
+	//		historyelement.setAttribute(Task.START_TIME, jsonObject.get(Task.START_TIME).toString());
+	//		historyelement.setAttribute(Task.STOP_TIME, jsonObject.get(Task.STOP_TIME).toString());
+	//		return historyelement;
+	//	}
 
 	private boolean writeHistory() {
 		if (context != null) {
@@ -306,21 +285,8 @@ public class HistoryManager extends AbstractMessageSystem implements HistoryMana
 			@Override
 			public void run() {
 				readHistory();
-				try {
-					ArrayList<JSONObject> arrayList = new ArrayList<JSONObject>();
-					List<Element> list = root.getChildren();
-					for (Element element : list) {
-						arrayList.add(xmlToJsonObject(element));
-					}
-					if (arrayList.isEmpty()) {
-						return;
-					}
-					fireMessageFromManager(arrayList, InAppMessageType.LOADED);
-				} catch (ParseException e) {
-					fireError(e);
-				} catch (DataConversionException e) {
-					fireError(e);
-				}
+				ArrayList<Element> arrayList = new ArrayList<Element>(root.getChildren());
+				fireMessageFromManager(arrayList, InAppMessageType.LOADED);
 			}
 		};
 	}

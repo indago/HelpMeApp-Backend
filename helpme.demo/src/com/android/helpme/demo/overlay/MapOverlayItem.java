@@ -3,7 +3,8 @@
  */
 package com.android.helpme.demo.overlay;
 
-import org.json.simple.JSONObject;
+
+import org.jdom2.Element;
 
 import android.graphics.drawable.Drawable;
 
@@ -16,7 +17,7 @@ import com.google.android.maps.OverlayItem;
  */
 public class MapOverlayItem extends OverlayItem {
 
-	private JSONObject jsonObject;
+	private Element element;
 	private Drawable[] drawable;
 	/**
 	 * @param point
@@ -25,22 +26,22 @@ public class MapOverlayItem extends OverlayItem {
 	 */
 	public MapOverlayItem(GeoPoint point, String title, String snippet) {
 		super(point, title, snippet);
-		jsonObject = null;
+		element = null;
 		drawable = null;
 	}
 
-	public MapOverlayItem(GeoPoint point, String title, String snippet, JSONObject jsonObject, Drawable[] drawable) {
+	public MapOverlayItem(GeoPoint point, String title, String snippet, Element element, Drawable[] drawable) {
 		super(point, title, snippet);
-		this.jsonObject = jsonObject;
+		this.element = element;
 		this.drawable = drawable;
 	}
 
-	public JSONObject getJsonObject() {
-		return jsonObject;
+	public Element getElement() {
+		return element;
 	}
 
-	public void setJsonObject(JSONObject jsonObject) {
-		this.jsonObject = jsonObject;
+	public void setElement(Element element) {
+		this.element = element;
 	}
 
 	public Drawable[] getDrawable() {

@@ -234,7 +234,13 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 						String string = (String) properties.get(key);
 						JSONObject object = (JSONObject) parser.parse(string);
 //						object = setPicture(object, context);
-						list.add(new User(object));
+						list.add(new User(
+								(String) object.get(User.ID),
+								(String) object.get(User.NAME),
+								(Boolean) ( object.get(User.HELFER)),
+								(String) object.get(User.PICTURE),
+								new Integer ((String) object.get(User.AGE)),
+								(String) object.get(User.GENDER)));
 					}
 					Log.i(LOGTAG, "The properties are now loaded");
 					fireMessageFromManager(list, InAppMessageType.RECEIVED_DATA);

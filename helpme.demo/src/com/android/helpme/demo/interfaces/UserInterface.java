@@ -1,6 +1,6 @@
 package com.android.helpme.demo.interfaces;
 
-import org.json.simple.JSONObject;
+import org.jdom2.Element;
 
 import android.content.SharedPreferences;
 
@@ -10,7 +10,7 @@ import com.google.android.maps.GeoPoint;
 
 public interface UserInterface {
 	
-	public UserInterface getUser(JSONObject object);
+	public UserInterface getUser(Element object);
 	
 	public String getId();
 
@@ -30,7 +30,7 @@ public interface UserInterface {
 
 	public void setPosition(Position position);
 
-	public JSONObject getJsonObject();
+	public Element getElement();
 	
 	public GeoPoint getGeoPoint();
 	

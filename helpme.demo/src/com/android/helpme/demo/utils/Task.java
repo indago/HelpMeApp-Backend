@@ -8,7 +8,10 @@ import java.util.Observable;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.json.simple.JSONObject;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 
 import com.android.helpme.demo.interfaces.PositionManagerInterface;
 import com.android.helpme.demo.interfaces.RabbitMQManagerInterface;
@@ -37,6 +40,8 @@ public class Task extends Observable{
 	private Position startPosition;
 	private long startTime;
 	private String state;
+	private XMLOutputter xmlOutputter;
+	private Document document;
 	UserManagerInterface userManagerInterface;
 	RabbitMQManagerInterface rabbitMQManagerInterface;
 	PositionManagerInterface positionManagerInterface;
@@ -51,6 +56,8 @@ public class Task extends Observable{
 		answered = false;
 		user = null;
 		state = null;
+		xmlOutputter = new XMLOutputter(Format.getCompactFormat());
+		
 	}
 
 	/**
@@ -81,15 +88,15 @@ public class Task extends Observable{
 	}
 	
 	public void sendPosition(Position position){
-		JSONObject object = new JSONObject();
-		object = UserManager.getInstance().getThisUser().getJsonObject();
+		Element object;
+		object = UserManager.getInstance().getThisUser().getElement();
 		userManagerInterface.thisUser().updatePosition(position);
-		object.put(User.POSITION, position.getJSON());
-		
+		object.addContent(position.getElement());
+		document = new Document(object);
 		if (answered) {
-			run(rabbitMQManagerInterface.sendStringOnChannel(object.toString(), exchangeName));
+			run(rabbitMQManagerInterface.sendStringOnChannel(xmlOutputter.outputString(document), exchangeName));
 		}else {
-			run(rabbitMQManagerInterface.sendStringOnMain(object.toString()));
+			run(rabbitMQManagerInterface.sendStringOnMain(xmlOutputter.outputString(document)));
 		}
 	}
 	
@@ -169,25 +176,25 @@ public class Task extends Observable{
 		}
 	}
 	
-	public JSONObject stopTask() {
+	public Element stopTask() {
 		run(positionManagerInterface.stopLocationTracking());
 		sendPosition(user.getPosition());
 		
 		sendPosition(user.getPosition());
 		run(rabbitMQManagerInterface.endSubscribtionToChannel(exchangeName));
-		JSONObject jsonObject = new JSONObject();
-		jsonObject.put(USER, user.getJsonObject());
-		jsonObject.put(START_TIME, new Long(startTime).toString());
-		jsonObject.put(STOP_TIME, new Long(System.currentTimeMillis()).toString());
-		jsonObject.put(START_POSITION, startPosition.getJSON());
+		Element element = new Element(TASK);
+		element.addContent(user.getElement());
+		element.setAttribute(START_TIME, new Long(startTime).toString());
+		element.setAttribute(STOP_TIME, new Long(System.currentTimeMillis()).toString());
+		element.addContent(startPosition.getElementAs(START_POSITION));
 		if (positionManagerInterface.getLastPosition() == null) {
-			jsonObject.put(STOP_POSITION, startPosition.getJSON());
+			element.addContent(startPosition.getElementAs(STOP_POSITION));
 		}else {
-			jsonObject.put(STOP_POSITION, positionManagerInterface.getLastPosition().getJSON());
+			element.addContent(positionManagerInterface.getLastPosition().getElementAs(STOP_POSITION));
 		}
 		
 //		jsonObject.put(STATE, state);
-		return jsonObject;
+		return element;
 	}
 	
 	public boolean isSuccsessfull() {

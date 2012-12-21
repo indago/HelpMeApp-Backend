@@ -7,9 +7,7 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.jdom2.Element;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -104,8 +102,8 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 	}
 
 	private Dialog buildDialog(HistoryOverlayItem item){
-		JSONObject object = item.getJsonObject();
-		UserInterface userInterface = new User((JSONObject) object.get(Task.USER));
+		Element object = item.getElement();
+		UserInterface userInterface = new User(object.getChild(Task.USER));
 		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
 
 		Dialog dialog = dialogBuilder.show();
@@ -118,7 +116,7 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 		text.setText(Html.fromHtml(context.getText(R.string.dialog_name) + userInterface.getName()));
 
 		text = (TextView) dialog.findViewById(R.id.history_date);
-		Date date = new Date( (Long) (object.get(Task.START_TIME)));
+		Date date = new Date( new Long(object.getAttributeValue(Task.START_TIME)));
 		DateFormat dateFormat = android.text.format.DateFormat.getDateFormat(context);
 		text.setText(Html.fromHtml(context.getText(R.string.dialog_date) + dateFormat.format(date)));
 
@@ -130,7 +128,7 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 		text.setText(Html.fromHtml(context.getString(R.string.dialog_gender) + userInterface.getGender() ));
 
 		text = (TextView) dialog.findViewById(R.id.history_time);
-		Long stoptime = (Long) (object.get(Task.STOP_TIME));
+		Long stoptime = new Long (object.getAttributeValue(Task.STOP_TIME));
 		Long starttime = date.getTime();
 
 		long diff = stoptime - starttime;

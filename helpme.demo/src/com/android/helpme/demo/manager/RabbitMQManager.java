@@ -1,12 +1,15 @@
 package com.android.helpme.demo.manager;
 
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.input.SAXBuilder;
+
 
 import android.content.Context;
 import android.content.ServiceConnection;
@@ -35,10 +38,11 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 	private Messenger messenger;
 	private InAppMessage message;
 	private boolean bound;
-	private JSONParser parser;
 	private Handler handler;
 	private ServiceConnection serviceConnection;
 	private RabbitMQService rabbitMQService;
+	private SAXBuilder saxBuilder;
+	private Document document;
 
 	public static RabbitMQManager getInstance() {
 		if (rabbitMQManager == null) {
@@ -58,11 +62,11 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 			InAppMessageType type = InAppMessageType.valueOf(bundle.getString(RabbitMQService.MESSAGE));
 			InAppMessage message = new InAppMessage(getManager(), null, type);
 			if (type == InAppMessageType.RECEIVED_DATA) {
-				JSONObject object;
 				try {
-					object = (JSONObject) parser.parse(bundle.getString(RabbitMQService.DATA_STRING));
-					message.setObject(new User(object));
-				} catch (ParseException e) {
+					Reader reader = new StringReader(bundle.getString(RabbitMQService.DATA_STRING));
+					document = saxBuilder.build(reader);
+					message.setObject(new User(document.getRootElement()));
+				} catch (Exception e) {
 					fireError(e);
 				}
 
@@ -110,7 +114,7 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 	private RabbitMQManager() {
 		exchangeNames = new ArrayList<String>();
 		bound = false;
-		parser = new JSONParser();
+		saxBuilder  = new SAXBuilder();
 	}
 
 	/*

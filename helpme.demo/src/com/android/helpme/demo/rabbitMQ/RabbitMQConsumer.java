@@ -5,10 +5,6 @@ package com.android.helpme.demo.rabbitMQ;
 
 import java.io.IOException;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 import android.os.RemoteException;
 import android.util.Log;
 

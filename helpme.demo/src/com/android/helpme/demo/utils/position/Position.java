@@ -21,7 +21,8 @@ import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.json.simple.JSONObject;
+import org.jdom2.DocType;
+import org.jdom2.Element;
 
 import com.android.helpme.demo.interfaces.PositionInterface;
 import com.android.helpme.demo.utils.User;
@@ -39,21 +40,21 @@ public class Position implements Serializable, PositionInterface {
 	public static final String LONGITUDE = "longitude";
 	public static final String LATITUDE = "latitude";
 	public static final String DATE = "date";
-	private double longitude;
-	private double latitude;
-	private double speed;
-	private double direction;
-	private double precision;
-	private long date;
+	private Double longitude;
+	private Double latitude;
+	private Double speed;
+	private Double direction;
+	private Double precision;
+	private Long date;
 
 	// private String operationId;
-	
+
 	public Position(Location location){
 		this.longitude =  location.getLongitude();
 		this.latitude = location.getLatitude();
-		this.speed = location.getSpeed();
-		this.direction = location.getBearing();
-		this.precision = location.getAccuracy();
+		this.speed = (double) location.getSpeed();
+		this.direction = (double) location.getBearing();
+		this.precision = (double) location.getAccuracy();
 		this.date = location.getTime();
 	}
 
@@ -61,30 +62,30 @@ public class Position implements Serializable, PositionInterface {
 		// this.operationId = OperationId;
 		this.longitude = lon;
 		this.latitude = lat;
-		this.speed = speed;
-		this.direction = direction;
-		this.precision = precision;
+		this.speed = (double) speed;
+		this.direction = (double) direction;
+		this.precision = (double) precision;
 		this.date = date;
 	}
 
-	public Position(JSONObject object) {
-		JSONObject position = (JSONObject) object.get(User.POSITION);
+	public Position(Element object) {
+		Element position = object.getChild(User.POSITION);
 		if (position != null) {
-			this.longitude = (Double)position.get(LONGITUDE);
-			this.latitude = (Double)position.get(LATITUDE);
-			this.speed = (Double)position.get(SPEED);
-			this.direction = (Double)position.get(DIRECTION);
-			this.precision = (Double)position.get(PRECISION);
-			this.date = (Long)position.get(DATE);
+			this.longitude = new Double(position.getAttributeValue(LONGITUDE));
+			this.latitude = new Double(position.getAttributeValue(LATITUDE));
+			this.speed = new Double (position.getAttributeValue(SPEED));
+			this.direction = new Double (position.getAttributeValue(DIRECTION));
+			this.precision = new Double (position.getAttributeValue(PRECISION));
+			this.date = new Long(position.getAttributeValue(DATE));
 		}else {
-			this.longitude = (Double)object.get(LONGITUDE);
-			this.latitude = (Double)object.get(LATITUDE);
-			this.speed = (Double)object.get(SPEED);
-			this.direction = (Double)object.get(DIRECTION);
-			this.precision = (Double)object.get(PRECISION);
-			this.date = (Long)object.get(DATE);
+			this.longitude = new Double( object.getAttributeValue(LONGITUDE));
+			this.latitude = new Double( object.getAttributeValue(LATITUDE));
+			this.speed = new Double( object.getAttributeValue(SPEED));
+			this.direction = new Double( object.getAttributeValue(DIRECTION));
+			this.precision = new Double( object.getAttributeValue(PRECISION));
+			this.date = new Long (object.getAttributeValue(DATE));
 		}
-		
+
 	}
 
 	/* (non-Javadoc)
@@ -118,7 +119,7 @@ public class Position implements Serializable, PositionInterface {
 	public long getMeasureDateTime() {
 		return date;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.android.helpme.demo.utils.position.PositionInterface#getLongitude()
 	 */
@@ -134,7 +135,7 @@ public class Position implements Serializable, PositionInterface {
 	public double getLatitude() {
 		return latitude;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.android.helpme.demo.utils.position.PositionInterface#calculateSphereDistance(com.android.helpme.demo.utils.position.PositionInterface)
 	 */
@@ -155,22 +156,33 @@ public class Position implements Serializable, PositionInterface {
 
 		return  (dist * meterConversion);
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.android.helpme.demo.utils.position.PositionInterface#getJSON()
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.android.helpme.demo.interfaces.PositionInterface#getElement()
 	 */
 	@Override
-	public JSONObject getJSON(){
-		JSONObject object = new JSONObject();
-		object.put(LONGITUDE, this.longitude);
-		object.put(LATITUDE, this.latitude);
-		object.put(SPEED, this.speed);
-		object.put(DIRECTION, this.direction);
-		object.put(PRECISION, this.precision);
-		object.put(DATE, this.date);
-		return object;
+	public Element getElement(){
+		return getElementAs(User.POSITION);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see com.android.helpme.demo.interfaces.PositionInterface#getElementAs(java.lang.String)
+	 */
+	@Override
+	public Element getElementAs(String string) {
+		Element object = new Element(string);
+
+		object.setAttribute(LONGITUDE, this.longitude.toString());
+		object.setAttribute(LATITUDE, this.latitude.toString());
+		object.setAttribute(SPEED, this.speed.toString());
+		object.setAttribute(DIRECTION, this.direction.toString());
+		object.setAttribute(PRECISION, this.precision.toString());
+		object.setAttribute(DATE, this.date.toString());
+		return object;
+	}
+
 	@Override
 	public String toString() {
 		String string = new String();
@@ -180,10 +192,10 @@ public class Position implements Serializable, PositionInterface {
 		string += DIRECTION +" : "+ this.direction +"\n";
 		string += PRECISION +" : "+ this.precision +"\n";
 		string += DATE +" : "+DateFormat.getDateInstance(DateFormat.FULL).format(new Date(date)) +"\n";
-		
+
 		return string;
 	}
-	
+
 	@Override
 	public GeoPoint getGeoPoint() {
 		int latitude = (int)(getLatitude() * 1e6);
