@@ -29,9 +29,9 @@ import com.android.helpme.demo.utils.position.Position;
  */
 public class Task extends Observable{
 	public static final String TASK = "task",USER = "user", START_TIME ="start_time",START_POSITION = "start_position",STOP_POSITION = "stop_position", STOP_TIME="stop_time",SUCCESSFUL ="successful",FAILED ="failed", RUNNING = "running", LOOKING = "looking", STATE = "state";
-	public static final int LONGDISTANCE = 1000;
-	public static final int MIDDISTANCE = 100;
-	public static final int SHORTDISTANCE = 10;
+	public static final int LONGDISTANCE = 5000;
+	public static final int MIDDISTANCE = 500;
+	public static final int SHORTDISTANCE = 50;
 	public static final long TIMERDELAY = 60000;
 	private UserInterface user;
 	private Timer timer;
@@ -93,11 +93,11 @@ public class Task extends Observable{
 		userManagerInterface.thisUser().updatePosition(position);
 		object.addContent(position.getElement());
 		document = new Document(object);
-		if (answered) {
-			run(rabbitMQManagerInterface.sendStringOnChannel(xmlOutputter.outputString(document), exchangeName));
-		}else {
+//		if (answered) {
+//			run(rabbitMQManagerInterface.sendStringOnChannel(xmlOutputter.outputString(document), exchangeName));
+//		}else {
 			run(rabbitMQManagerInterface.sendStringOnMain(xmlOutputter.outputString(document)));
-		}
+//		}
 	}
 	
 	public Boolean isAnswered(){

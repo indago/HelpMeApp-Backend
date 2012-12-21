@@ -125,7 +125,15 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 		text.setText(Html.fromHtml(context.getString(R.string.dialog_age) + new Integer(userInterface.getAge()).toString()));
 
 		text = (TextView) dialog.findViewById(R.id.history_gender);
-		text.setText(Html.fromHtml(context.getString(R.string.dialog_gender) + userInterface.getGender() ));
+		String gender = userInterface.getGender();
+		if (gender.equalsIgnoreCase("female")) {
+			text.setText(Html.fromHtml(context.getString(R.string.dialog_gender) + context.getString(R.string.female)));
+		}
+		else
+		{
+			text.setText(Html.fromHtml(context.getString(R.string.dialog_gender) + context.getString(R.string.male)));
+		}
+		
 
 		text = (TextView) dialog.findViewById(R.id.history_time);
 		Long stoptime = new Long (object.getAttributeValue(Task.STOP_TIME));

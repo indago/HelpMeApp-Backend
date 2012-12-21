@@ -1,0 +1,15 @@
+<resources>
+
+    <string name="waitingtext">warte auf Hilfe Ruf</string>
+    <string name="waitingtitle">warte...</string>
+    <string name="female">weiblich</string>
+    <string name="male">männlich</string>
+    <string name="local_service_started">Service gestartet</string>
+    <string name="local_service_stopped">Service gestopt</string>
+
+    <string name="dialog_name"><![CDATA[<font color="#00a9e8"><b>Name: </b></font>]]></string>
+    <string name="dialog_age"><![CDATA[<font color="#00a9e8"><b>Alter: </b></font>]]></string>
+    <string name="dialog_gender"><![CDATA[<font color="#00a9e8"><b>Geschlecht: </b></font>]]></string>
+    <string name="dialog_date"><![CDATA[<font color="#00a9e8"><b>Datum: </b></font>]]></string>
+    <string name="dialog_time"><![CDATA[<font color="#00a9e8"><b>Uhrzeit: </b></font>]]></string>
+</resources>

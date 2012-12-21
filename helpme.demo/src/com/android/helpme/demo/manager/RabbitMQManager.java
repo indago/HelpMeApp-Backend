@@ -220,11 +220,11 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 
 			@Override
 			public void run() {
-				try {
-					sendToService(createEndSubscribtionBundle(exchangeName));
-				} catch (RemoteException e) {
-					fireError(e);
-				}
+//				try {
+//					sendToService(createEndSubscribtionBundle(exchangeName));
+//				} catch (RemoteException e) {
+//					fireError(e);
+//				}
 			}
 		};
 	}

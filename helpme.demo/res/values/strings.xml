@@ -2,6 +2,8 @@
 
     <string name="waitingtext">waiting for Help requests</string>
     <string name="waitingtitle">Waiting...</string>
+    <string name="female">weiblich</string>
+    <string name="male">männlich</string>
     <string name="local_service_started">service started</string>
     <string name="local_service_stopped">service stopped</string>
 
