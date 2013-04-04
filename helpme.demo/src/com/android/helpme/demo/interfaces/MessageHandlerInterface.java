@@ -3,7 +3,8 @@ package com.android.helpme.demo.interfaces;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.android.helpme.demo.interfaces.DrawManagerInterface.DRAWMANAGER_TYPE;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.DrawManagerInterface;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.DrawManagerInterface.DRAWMANAGER_TYPE;
 import com.android.helpme.demo.manager.MessageHandler;
 
 public interface MessageHandlerInterface {

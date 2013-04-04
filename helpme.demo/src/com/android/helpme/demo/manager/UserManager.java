@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Timer;
@@ -25,37 +26,44 @@ import android.content.res.Resources;
 import android.provider.Settings.Secure;
 import android.util.Log;
 
+import com.android.helpme.demo.eventmanagement.eventListeners.PositionEventListener;
+import com.android.helpme.demo.eventmanagement.eventListeners.UserEventListener;
+import com.android.helpme.demo.eventmanagement.events.PositionEvent;
+import com.android.helpme.demo.eventmanagement.events.UserEvent;
+import com.android.helpme.demo.interfaces.PositionManagerInterface;
 import com.android.helpme.demo.interfaces.UserInterface;
-import com.android.helpme.demo.interfaces.UserManagerInterface;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.UserManagerInterface;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystemInterface;
 import com.android.helpme.demo.messagesystem.InAppMessage;
 import com.android.helpme.demo.messagesystem.InAppMessageType;
 import com.android.helpme.demo.utils.ThreadPool;
 import com.android.helpme.demo.utils.User;
+import com.android.helpme.demo.utils.position.Position;
 
 /**
  * 
  * @author Andreas Wieland
  * 
  */
-public class UserManager extends AbstractMessageSystem implements UserManagerInterface {
+public class UserManager implements UserManagerInterface, PositionEventListener{
 	private static final String LOGTAG = UserManager.class.getSimpleName();
 	private static final String USER_PROPERTIES = "user.properties";
 	private static final String CHOOSEN_USER_PREF = "choosen_user_preference";
 	private static final long TIMEOUT = 60000;
 	private static UserManager manager;
+	private Set<UserEventListener> userEventListeners;
+	
 	private Context context;
-	private InAppMessage message;
 	private ConcurrentHashMap<String, User> users;
 	private UserInterface thisUser;
 	private boolean userSet;
 	private Timer timer;
 
-	public enum pictures {
-		john, emperor, curie, senior1, senior2, senior3, helper1, helper2, helper3
-	};
-
+	/**
+	 * 
+	 * @return {@link UserManager}
+	 */
 	public static UserManager getInstance() {
 		if(manager == null) {
 			manager = new UserManager();
@@ -63,10 +71,23 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 		return manager;
 	}
 
+	/**
+	 * creates new User Manager
+	 */
 	private UserManager() {
 		users = new ConcurrentHashMap<String, User>();
 		userSet = false;
 		timer = new Timer();
+		userEventListeners = new HashSet<UserEventListener>();
+	}
+	
+	@Override
+	public boolean init() {
+		if (PositionManager.getInstance() != null) {
+			PositionManager.getInstance().addPositionEventListener(this);
+			return true;
+		}
+		return false;
 	}
 
 	/*
@@ -104,17 +125,17 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	}
 
 	@Override
-	public Runnable setThisUser(final UserInterface userInterface, final Context context) {
-		return new Runnable() {
+	public void setThisUser(final UserInterface userInterface, final Context context) {
+		//		return new Runnable() {
 
-			@Override
-			public void run() {
-				String uuid = UUID.randomUUID().toString();
-				setThisUser(userInterface, uuid);
-				ThreadPool.runTask(saveUserChoice(context));
-				ThreadPool.runTask(clear());
-			}
-		};
+		//			@Override
+		//			public void run() {
+		String uuid = UUID.randomUUID().toString();
+		setThisUser(userInterface, uuid);
+		saveUserChoice(context);
+		clear();
+		//			}
+		//		};
 	}
 
 	@Override
@@ -122,20 +143,20 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 		return LOGTAG;
 	}
 
-	@Override
-	protected InAppMessage getMessage() {
-		return message;
-	}
-
-	@Override
-	protected void setMessage(InAppMessage inAppMessage) {
-		this.message = inAppMessage;
-	}
-
-	@Override
-	public AbstractMessageSystemInterface getManager() {
-		return manager;
-	}
+//	@Override
+//	protected InAppMessage getMessage() {
+//		return message;
+//	}
+//
+//	@Override
+//	protected void setMessage(InAppMessage inAppMessage) {
+//		this.message = inAppMessage;
+//	}
+//
+//	@Override
+//	public AbstractMessageSystemInterface getManager() {
+//		return manager;
+//	}
 
 	/*
 	 * (non-Javadoc)
@@ -146,9 +167,9 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	 */
 	@Override
 	public boolean addUser(UserInterface user) {
-//		if(users.isEmpty()) {
-//			timer.scheduleAtFixedRate(createTimerTask(), TIMEOUT, TIMEOUT);
-//		}
+		//		if(users.isEmpty()) {
+		//			timer.scheduleAtFixedRate(createTimerTask(), TIMEOUT, TIMEOUT);
+		//		}
 		if(users.containsKey(user.getId())) {
 			users.get(user.getId()).updatePosition(user.getPosition());
 			return false;
@@ -157,7 +178,7 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 			return true;
 		}
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see com.android.helpme.demo.interfaces.UserManagerInterface#removeUser(com.android.helpme.demo.utils.User)
@@ -213,85 +234,48 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	 * (android.app.Activity)
 	 */
 	@Override
-	public Runnable readUserFromProperty(final Context context) {
-		return new Runnable() {
+	public ArrayList<User> readUsersFromProperty(final Context context) {
+		//		return new Runnable() {
+		//
+		//			@Override
+		//			public void run() {
+		Resources resources = context.getResources();
+		AssetManager assetManager = resources.getAssets();
 
-			@Override
-			public void run() {
-				Resources resources = context.getResources();
-				AssetManager assetManager = resources.getAssets();
-
-				// Read from the /assets directory
-				try {
-					InputStream inputStream = assetManager.open(USER_PROPERTIES);
-					Reader reader = new InputStreamReader(inputStream);
-					JSONParser parser = new JSONParser();
-					Properties properties = new Properties();
-					properties.load(reader);
-					Set<Object> set = properties.keySet();
-					ArrayList<User> list = new ArrayList<User>();
-					for(Object key : set) {
-						String string = (String) properties.get(key);
-						JSONObject object = (JSONObject) parser.parse(string);
-//						object = setPicture(object, context);
-						list.add(new User(
-								(String) object.get(User.ID),
-								(String) object.get(User.NAME),
-								(Boolean) ( object.get(User.HELFER)),
-								(String) object.get(User.PICTURE),
-								new Integer ((String) object.get(User.AGE)),
-								(String) object.get(User.GENDER)));
-					}
-					Log.i(LOGTAG, "The properties are now loaded");
-					fireMessageFromManager(list, InAppMessageType.RECEIVED_DATA);
-				} catch(IOException e) {
-					fireError(e);
-				} catch(ParseException e) {
-					fireError(e);
-				}
-			}
-		};
-	}
-
-	private JSONObject setPicture(JSONObject object, Context context) {
-		String key = User.PICTURE;
-		pictures name = null;
+		// Read from the /assets directory
 		try {
-			name = pictures.valueOf((String) object.get(key));
-		} catch(IllegalArgumentException exception) {
-			name = pictures.john;
+			InputStream inputStream = assetManager.open(USER_PROPERTIES);
+			Reader reader = new InputStreamReader(inputStream);
+			JSONParser parser = new JSONParser();
+			Properties properties = new Properties();
+			properties.load(reader);
+			Set<Object> set = properties.keySet();
+			ArrayList<User> list = new ArrayList<User>();
+			for(Object key : set) {
+				String string = (String) properties.get(key);
+				JSONObject object = (JSONObject) parser.parse(string);
+				//						object = setPicture(object, context);
+				list.add(new User(
+						(String) object.get(User.ID),
+						(String) object.get(User.NAME),
+						(Boolean) ( object.get(User.HELFER)),
+						(String) object.get(User.PICTURE),
+						new Integer ((String) object.get(User.AGE)),
+						(String) object.get(User.GENDER)));
+			}
+			Log.i(LOGTAG, "The properties are now loaded");
+			//			fireMessageFromManager(list, InAppMessageType.RECEIVED_DATA);
+			return list;
+		} catch(IOException e) {
+			Log.e(LOGTAG, e.toString());
+			//			fireError(e);
+		} catch(ParseException e) {
+			Log.e(LOGTAG, e.toString());
+			//			fireError(e);
 		}
-		switch(name) {
-			case curie:
-				object.put(key, pictures.curie.ordinal());
-				break;
-			case emperor:
-				object.put(key, pictures.emperor.ordinal());
-				break;
-			case senior1:
-				object.put(key, pictures.senior1.ordinal());
-				break;
-			case senior2:
-				object.put(key, pictures.senior2.ordinal());
-				break;
-			case senior3:
-				object.put(key, pictures.senior3.ordinal());
-				break;
-			case helper1:
-				object.put(key, pictures.helper1.ordinal());
-				break;
-			case helper2:
-				object.put(key, pictures.helper2.ordinal());
-				break;
-			case helper3:
-				object.put(key, pictures.helper3.ordinal());
-				break;
-
-			default:
-				object.put(key, pictures.john.ordinal());
-				break;
-		}
-		return object;
+		return null;
+		//			}
+		//		};
 	}
 
 	/*
@@ -301,16 +285,17 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	 * readUserChoice(android.content.Context)
 	 */
 	@Override
-	public Runnable readUserChoice(final Context context) {
-		return new Runnable() {
+	public UserInterface readUserChoice(final Context context) {
+		//		return new Runnable() {
 
-			@Override
-			public void run() {
-				SharedPreferences settings = context.getSharedPreferences(CHOOSEN_USER_PREF, 0);
-				userSet = readUserFromSharedPreference(settings);
-				fireMessageFromManager(thisUser, InAppMessageType.LOADED);
-			}
-		};
+		//			@Override
+		//			public void run() {
+		SharedPreferences settings = context.getSharedPreferences(CHOOSEN_USER_PREF, 0);
+		userSet = readUserFromSharedPreference(settings);
+		//				fireMessageFromManager(thisUser, InAppMessageType.LOADED);
+		return thisUser;
+		//			}
+		//		};
 	}
 
 	/*
@@ -320,15 +305,15 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	 * saveUserChoice(android.content.Context)
 	 */
 	@Override
-	public Runnable saveUserChoice(final Context context) {
-		return new Runnable() {
+	public boolean saveUserChoice(final Context context) {
+		//		return new Runnable() {
 
-			@Override
-			public void run() {
-				SharedPreferences settings = context.getSharedPreferences(CHOOSEN_USER_PREF, 0);
-				writeUserToSharedPreference(settings);
-			}
-		};
+		//			@Override
+		//			public void run() {
+		SharedPreferences settings = context.getSharedPreferences(CHOOSEN_USER_PREF, 0);
+		return writeUserToSharedPreference(settings); 
+		//			}
+		//		};
 	}
 
 	/*
@@ -338,18 +323,18 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	 * deleteUserChoice(android.content.Context)
 	 */
 	@Override
-	public Runnable deleteUserChoice(final Context context) {
-		return new Runnable() {
+	public boolean deleteUserChoice(final Context context) {
+		//		return new Runnable() {
 
-			@Override
-			public void run() {
-				SharedPreferences preferences = context.getSharedPreferences(CHOOSEN_USER_PREF, 0);
-				deleteUserFromSharedPreference(preferences);
-				thisUser = null;
-				userSet = false;
-				
-			}
-		};
+		//			@Override
+		//			public void run() {
+		SharedPreferences preferences = context.getSharedPreferences(CHOOSEN_USER_PREF, 0);
+		thisUser = null;
+		userSet = false;
+		return deleteUserFromSharedPreference(preferences);
+
+		//			}
+		//		};
 	}
 
 	/**
@@ -378,11 +363,11 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	 */
 	private boolean readUserFromSharedPreference(SharedPreferences preferences) {
 		User user = new User(preferences.getString(User.ID, null),
-								preferences.getString(User.NAME, null),
-								preferences.getBoolean(User.HELFER, false),
-								preferences.getString(User.PICTURE, null),
-								preferences.getInt(User.AGE, Integer.MIN_VALUE),
-								preferences.getString(User.GENDER, null));
+				preferences.getString(User.NAME, null),
+				preferences.getBoolean(User.HELFER, false),
+				preferences.getString(User.PICTURE, null),
+				preferences.getInt(User.AGE, Integer.MIN_VALUE),
+				preferences.getString(User.GENDER, null));
 		if(user.getId() == null) {
 			thisUser = null;
 			return false;
@@ -402,16 +387,16 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 		return editor.commit();
 	}
 
-	public Runnable clear() {
-		return new Runnable() {
-
-			@Override
-			public void run() {
-				synchronized(users) {
-					users.clear();
-				}
-			}
-		};
+	public void clear() {
+		//		return new Runnable() {
+		//
+		//			@Override
+		//			public void run() {
+		synchronized(users) {
+			users.clear();
+		}
+		//			}
+		//		};
 
 	}
 
@@ -419,31 +404,53 @@ public class UserManager extends AbstractMessageSystem implements UserManagerInt
 	public UserInterface getUserById(String id) {
 		return users.get(id);
 	}
-
-	private TimerTask createTimerTask() {
-		return new TimerTask() {
-
-			@Override
-			public void run() {
-				boolean changed = false;
-				Enumeration<String> keys = users.keys();
-				while(keys.hasMoreElements()) {
-					String key = (String) keys.nextElement();
-					User user = users.get(key);
-					long timeOfLastMessage = user.getPosition().getMeasureDateTime();
-					long currentTime = System.currentTimeMillis();
-					if(currentTime - timeOfLastMessage >= TIMEOUT) {
-
-						users.remove(key);
-
-						changed = true;
-					}
-				}
-
-				if(changed) {
-					fireMessageFromManager(getUsers(), InAppMessageType.CHANGED);
-				}
-			}
-		};
+	
+	@Override
+	public void addUserEventListener(UserEventListener userEventListener) {
+		userEventListeners.add(userEventListener);
 	}
+	
+	@Override
+	public void removeUserEventListener(UserEventListener userEventListener) {
+		userEventListeners.remove(userEventListener);
+	}
+	
+	private void notifyListeners(UserEvent userEvent){
+		for (UserEventListener eventListener : userEventListeners) {
+			eventListener.getUserEvent(userEvent);
+		}
+	}
+
+	@Override
+	public void getPositionEvent(PositionEvent positionEvent) {
+		Position position = positionEvent.getPosition();
+		thisUser.updatePosition(position);
+	}
+
+//	private TimerTask createTimerTask() {
+//		return new TimerTask() {
+//
+//			@Override
+//			public void run() {
+//				boolean changed = false;
+//				Enumeration<String> keys = users.keys();
+//				while(keys.hasMoreElements()) {
+//					String key = (String) keys.nextElement();
+//					User user = users.get(key);
+//					long timeOfLastMessage = user.getPosition().getMeasureDateTime();
+//					long currentTime = System.currentTimeMillis();
+//					if(currentTime - timeOfLastMessage >= TIMEOUT) {
+//
+//						users.remove(key);
+//
+//						changed = true;
+//					}
+//				}
+//
+//				if(changed) {
+//					fireMessageFromManager(getUsers(), InAppMessageType.CHANGED);
+//				}
+//			}
+//		};
+//	}
 }

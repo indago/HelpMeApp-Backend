@@ -8,10 +8,10 @@ import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.android.helpme.demo.exceptions.WrongObjectType;
-import com.android.helpme.demo.interfaces.DrawManagerInterface;
 import com.android.helpme.demo.interfaces.MessageOrchestratorInterface;
-import com.android.helpme.demo.interfaces.RabbitMQManagerInterface;
-import com.android.helpme.demo.interfaces.DrawManagerInterface.DRAWMANAGER_TYPE;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.DrawManagerInterface;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.RabbitMQManagerInterface;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.DrawManagerInterface.DRAWMANAGER_TYPE;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystemInterface;
 import com.android.helpme.demo.messagesystem.InAppMessage;
@@ -26,7 +26,12 @@ import android.content.ServiceConnection;
 import android.location.Location;
 import android.os.IBinder;
 import android.util.Log;
-
+@Deprecated
+/**
+ * 
+ * @author Andreas Wieland
+ *
+ */
 public class MessageOrchestrator extends MessageHandler implements MessageOrchestratorInterface {
 	private static final String LOGTAG = MessageOrchestrator.class.getSimpleName();
 	private static MessageOrchestrator messageOrchestrator;
@@ -103,9 +108,9 @@ public class MessageOrchestrator extends MessageHandler implements MessageOrches
 			handleRabbitMQMessages(message);
 		}else if (message.getSource() instanceof PositionManager) {
 			handlePositionMessage(message);
-		}else if (message.getSource() instanceof UserManager) {
-			handleUserMessages(message);
-		}else if(message.getSource() instanceof HistoryManager){
+//		}else if (message.getSource() instanceof UserManager) {
+//			handleUserMessages(message);
+		}else if(message.getSource() instanceof TaskManager){
 			handleHistoryMessages(message);
 		}else{
 			Log.e(LOGTAG, "no handle Method defined for: " + message.getObject().toString() );

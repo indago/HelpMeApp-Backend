@@ -27,7 +27,7 @@ import android.widget.TextView;
 
 import com.android.helpme.demo.R;
 import com.android.helpme.demo.interfaces.UserInterface;
-import com.android.helpme.demo.utils.Task;
+import com.android.helpme.demo.utils.TaskInterface;
 import com.android.helpme.demo.utils.User;
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.ItemizedOverlay;
@@ -103,7 +103,7 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 
 	private Dialog buildDialog(HistoryOverlayItem item){
 		Element object = item.getElement();
-		UserInterface userInterface = new User(object.getChild(Task.USER));
+		UserInterface userInterface = new User(object.getChild(TaskInterface.USER));
 		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
 
 		Dialog dialog = dialogBuilder.show();
@@ -116,7 +116,7 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 		text.setText(Html.fromHtml(context.getText(R.string.dialog_name) + userInterface.getName()));
 
 		text = (TextView) dialog.findViewById(R.id.history_date);
-		Date date = new Date( new Long(object.getAttributeValue(Task.START_TIME)));
+		Date date = new Date( new Long(object.getAttributeValue(TaskInterface.START_TIME)));
 		DateFormat dateFormat = android.text.format.DateFormat.getDateFormat(context);
 		text.setText(Html.fromHtml(context.getText(R.string.dialog_date) + dateFormat.format(date)));
 
@@ -136,7 +136,7 @@ public class HistoryItemnizedOverlay extends ItemizedOverlay<OverlayItem> {
 		
 
 		text = (TextView) dialog.findViewById(R.id.history_time);
-		Long stoptime = new Long (object.getAttributeValue(Task.STOP_TIME));
+		Long stoptime = new Long (object.getAttributeValue(TaskInterface.STOP_TIME));
 		Long starttime = date.getTime();
 
 		long diff = stoptime - starttime;

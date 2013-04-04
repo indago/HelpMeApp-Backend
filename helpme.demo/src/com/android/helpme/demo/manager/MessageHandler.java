@@ -5,18 +5,18 @@ import java.util.ArrayList;
 import com.android.helpme.demo.exceptions.DontKnowWhatHappenedException;
 import com.android.helpme.demo.exceptions.UnkownMessageType;
 import com.android.helpme.demo.exceptions.WrongObjectType;
-import com.android.helpme.demo.interfaces.DrawManagerInterface;
-import com.android.helpme.demo.interfaces.DrawManagerInterface.DRAWMANAGER_TYPE;
-import com.android.helpme.demo.interfaces.HistoryManagerInterface;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.DrawManagerInterface;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.RabbitMQManagerInterface;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.TaskManagerInterface;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.UserManagerInterface;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.DrawManagerInterface.DRAWMANAGER_TYPE;
 import com.android.helpme.demo.interfaces.MessageHandlerInterface;
 import com.android.helpme.demo.interfaces.PositionManagerInterface;
-import com.android.helpme.demo.interfaces.RabbitMQManagerInterface;
-import com.android.helpme.demo.interfaces.UserManagerInterface;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
 import com.android.helpme.demo.messagesystem.InAppMessage;
 import com.android.helpme.demo.utils.User;
 import com.android.helpme.demo.utils.position.Position;
-
+@Deprecated
 /**
  * 
  * @author Andreas Wieland
@@ -29,7 +29,7 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 	protected static RabbitMQManagerInterface rabbitMQManagerInterface = RabbitMQManager.getInstance();
 	protected static UserManagerInterface userManagerInterface = UserManager.getInstance();
 	protected static PositionManagerInterface positionManagerInterface = PositionManager.getInstance();
-	protected static HistoryManagerInterface historyManagerInterface = HistoryManager.getInstance();
+	protected static TaskManagerInterface historyManagerInterface = TaskManager.getInstance();
 
 	/**
 	 * Handels the Messages form the {@link PositionManager}
@@ -52,7 +52,7 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 				userManagerInterface.thisUser().updatePosition(position);
 			}else {
 				try{
-				run(positionManagerInterface.stopLocationTracking());
+				positionManagerInterface.stopLocationTracking();
 				}catch(NullPointerException exception){
 					fireError(new DontKnowWhatHappenedException(exception.toString()));
 				}
@@ -105,11 +105,11 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 			// TODO
 			break;
 		case BOUND_TO_SERVICE:
-			run(rabbitMQManagerInterface.connect());
+			rabbitMQManagerInterface.connect();
 			break;
 
 		case CONNECTED:
-			run(rabbitMQManagerInterface.subscribeToMainChannel());
+			rabbitMQManagerInterface.subscribeToMainChannel();
 			break;
 
 		case RECEIVED_DATA:
@@ -150,7 +150,7 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 	 */
 	private void handleIncomingUserAsHelper(User incomingUser) {
 		if(userManagerInterface.addUser(incomingUser)) {
-			run(rabbitMQManagerInterface.showNotification(incomingUser));
+//			run(rabbitMQManagerInterface.showNotification(incomingUser));
 		}
 
 		if(historyManagerInterface.getTask() != null && getDrawManager(DRAWMANAGER_TYPE.MAP) != null) {
@@ -223,40 +223,40 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 		}
 	}
 
-	/**
-	 * Handles Messages from the {@link UserManager}
-	 * 
-	 * @param message
-	 */
-	protected void handleUserMessages(InAppMessage message) {
-		switch(message.getType()) {
-		case LOADED:
-			if(getDrawManager(DRAWMANAGER_TYPE.SWITCHER) != null) {
-				getDrawManager(DRAWMANAGER_TYPE.SWITCHER).drawThis(message.getObject());
-			}
-
-			break;
-		case RECEIVED_DATA:
-			if(!(message.getObject() instanceof ArrayList<?>)) {
-				fireError(new WrongObjectType(message.getObject(), ArrayList.class));
-				return;
-			}
-
-			if(getDrawManager(DRAWMANAGER_TYPE.LOGIN) != null) {
-				getDrawManager(DRAWMANAGER_TYPE.LOGIN).drawThis(message.getObject());
-			}
-			break;
-
-		case CHANGED:
-			if(getDrawManager(DRAWMANAGER_TYPE.HELPER) != null) {
-				getDrawManager(DRAWMANAGER_TYPE.HELPER).drawThis(message.getObject());
-			}
-
-			break;
-
-		default:
-			fireError(new UnkownMessageType());
-			break;
-		}
-	}
+//	/**
+//	 * Handles Messages from the {@link UserManager}
+//	 * 
+//	 * @param message
+//	 */
+//	protected void handleUserMessages(InAppMessage message) {
+//		switch(message.getType()) {
+//		case LOADED:
+//			if(getDrawManager(DRAWMANAGER_TYPE.SWITCHER) != null) {
+//				getDrawManager(DRAWMANAGER_TYPE.SWITCHER).drawThis(message.getObject());
+//			}
+//
+//			break;
+//		case RECEIVED_DATA:
+//			if(!(message.getObject() instanceof ArrayList<?>)) {
+//				fireError(new WrongObjectType(message.getObject(), ArrayList.class));
+//				return;
+//			}
+//
+//			if(getDrawManager(DRAWMANAGER_TYPE.LOGIN) != null) {
+//				getDrawManager(DRAWMANAGER_TYPE.LOGIN).drawThis(message.getObject());
+//			}
+//			break;
+//
+//		case CHANGED:
+//			if(getDrawManager(DRAWMANAGER_TYPE.HELPER) != null) {
+//				getDrawManager(DRAWMANAGER_TYPE.HELPER).drawThis(message.getObject());
+//			}
+//
+//			break;
+//
+//		default:
+//			fireError(new UnkownMessageType());
+//			break;
+//		}
+//	}
 }

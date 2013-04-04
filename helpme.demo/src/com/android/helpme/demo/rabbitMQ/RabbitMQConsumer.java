@@ -8,7 +8,7 @@ import java.io.IOException;
 import android.os.RemoteException;
 import android.util.Log;
 
-import com.android.helpme.demo.interfaces.RabbitMQManagerInterface;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.RabbitMQManagerInterface;
 import com.android.helpme.demo.messagesystem.InAppMessageType;
 import com.android.helpme.demo.utils.User;
 import com.rabbitmq.client.Channel;

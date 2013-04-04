@@ -1,6 +1,7 @@
 package com.android.helpme.demo.rabbitMQ;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -105,7 +106,7 @@ public class RabbitMQService extends Observable implements RabbitMQSerivceInterf
 
 					connected = true;
 				} catch(IOException e) {
-					Log.e(LOGTAG, e.toString());
+					Log.e(LOGTAG, "connect: " +e.toString());
 				}
 
 			}
@@ -130,7 +131,7 @@ public class RabbitMQService extends Observable implements RabbitMQSerivceInterf
 				try {
 					connection.close();
 				} catch(IOException e) {
-					Log.e(LOGTAG, e.toString());
+					Log.e(LOGTAG, "disconnect: " +e.toString());
 				}
 				Log.i(LOGTAG, "disconnected");
 			}
@@ -154,7 +155,7 @@ public class RabbitMQService extends Observable implements RabbitMQSerivceInterf
 					Log.e(LOGTAG, exchangeName + " : " + exception.toString());
 					subscribedChannels.remove(exchangeName);
 				} catch(IOException e) {
-					Log.e(LOGTAG, e.toString());
+					Log.e(LOGTAG, "sendStringOnChannel: " +e.toString());
 				}
 
 			}
@@ -207,12 +208,12 @@ public class RabbitMQService extends Observable implements RabbitMQSerivceInterf
 						channel = null;
 						Log.i(LOGTAG, "subscribed to " + subscribedChannels.size() + " Channels" + "\n" + "ended subscribtion to : " + exchangeName);
 					} catch(AlreadyClosedException e) {
-						Log.e(LOGTAG, e.toString());
+						Log.e(LOGTAG, "endSubcribtionToChannel: " +e.toString());
 						subscribedChannels.remove(exchangeName);
 					} catch(IOException e) {
-						Log.e(LOGTAG, e.toString());
+						Log.e(LOGTAG, "endSubcribtionToChannel: " +e.toString());
 					} catch(ShutdownSignalException e) {
-						Log.e(LOGTAG, e.toString());
+						Log.e(LOGTAG, "endSubcribtionToChannel: " +e.toString());
 
 					}
 				}
@@ -228,10 +229,16 @@ public class RabbitMQService extends Observable implements RabbitMQSerivceInterf
 			bundle.putString(DATA_STRING, string);
 		}
 		message.setData(bundle);
-		RabbitMQManager.getInstance().update(service, message);
+//		RabbitMQManager.getInstance().update(service, message);
+		setChanged();
+		notifyObservers(message);
 	}
 
 	private void runThread(Runnable runnable) {
 		new Thread(runnable).start();
+	}
+	
+	public ArrayList<String> getSubscribedChannelNames(){
+		return new ArrayList<String>(subscribedChannels.keySet());
 	}
 }

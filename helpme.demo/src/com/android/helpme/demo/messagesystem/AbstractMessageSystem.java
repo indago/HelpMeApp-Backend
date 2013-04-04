@@ -3,8 +3,9 @@ package com.android.helpme.demo.messagesystem;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-
 import com.android.helpme.demo.utils.ThreadPool;
+
+@Deprecated
 /**
  * 
  * @author Andreas Wieland

@@ -20,20 +20,11 @@ import com.google.android.maps.GeoPoint;
  *
  */
 public class User implements UserInterface {
-	public static final String NAME = "Name";
-	public static final String HELFER = "Helfer";
-	public static final String POSITION = "Position";
-	public static final String PICTURE = "Picture";
-	public static final String ID = "id";
-	public static final String MESSAGE = "Message";
-	public static final String GENDER = "Gender";
-	public static final String AGE = "Age";
-
 	private String name;
 	private String id;
 	private Boolean helfer;
 	private Position position;
-	private String pic; //TODO
+	private String pic;
 	private Integer age;
 	private String gender;
 
@@ -137,7 +128,12 @@ public class User implements UserInterface {
 	 */
 	@Override
 	public Element getElement() {
-		Element object = new Element(Task.USER);
+		return getElement((TaskInterface.USER));
+	}
+	
+	@Override
+	public Element getElement(String elementName) {
+		Element object = new Element(elementName);
 		object.setAttribute(NAME, name);
 		object.setAttribute(HELFER, helfer.toString());
 		if (position != null) {
@@ -149,6 +145,7 @@ public class User implements UserInterface {
 		object.setAttribute(GENDER, gender);
 		return object;
 	}
+	
 	/*
 	 * (non-Javadoc)
 	 * @see com.android.helpme.demo.utils.UserInterface#getGeoPoint()

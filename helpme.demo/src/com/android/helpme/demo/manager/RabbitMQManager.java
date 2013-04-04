@@ -3,8 +3,10 @@ package com.android.helpme.demo.manager;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Set;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -20,9 +22,11 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.android.helpme.demo.eventmanagement.eventListeners.DataEventListener;
+import com.android.helpme.demo.eventmanagement.events.DataEvent;
 import com.android.helpme.demo.exceptions.UnboundException;
-import com.android.helpme.demo.interfaces.RabbitMQManagerInterface;
 import com.android.helpme.demo.interfaces.UserInterface;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.RabbitMQManagerInterface;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystemInterface;
 import com.android.helpme.demo.messagesystem.InAppMessage;
@@ -31,24 +35,22 @@ import com.android.helpme.demo.rabbitMQ.RabbitMQService;
 import com.android.helpme.demo.utils.ThreadPool;
 import com.android.helpme.demo.utils.User;
 
-public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQManagerInterface, Observer{
+public class RabbitMQManager  implements RabbitMQManagerInterface, Observer{
 	public static final String LOGTAG = RabbitMQManager.class.getSimpleName();
-	private static RabbitMQManager rabbitMQManager;
+	private static int TIMEOUT = 1000;
+	private static RabbitMQManager manager;
+	private Set<DataEventListener> dataEventListeners;
 	private ArrayList<String> exchangeNames;
-	private Messenger messenger;
-	private InAppMessage message;
 	private boolean bound;
-	private Handler handler;
-	private ServiceConnection serviceConnection;
 	private RabbitMQService rabbitMQService;
 	private SAXBuilder saxBuilder;
 	private Document document;
 
 	public static RabbitMQManager getInstance() {
-		if (rabbitMQManager == null) {
-			rabbitMQManager = new RabbitMQManager();
+		if (manager == null) {
+			manager = new RabbitMQManager();
 		}
-		return rabbitMQManager;
+		return manager;
 	}
 	/*
 	 * (non-Javadoc)
@@ -56,23 +58,34 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 	 */
 	@Override
 	public void update(Observable observable, Object data) {
+		//TODO
 		if (data instanceof Message) {
 			Message msg = (Message) data;
 			Bundle bundle = msg.getData();
 			InAppMessageType type = InAppMessageType.valueOf(bundle.getString(RabbitMQService.MESSAGE));
-			InAppMessage message = new InAppMessage(getManager(), null, type);
+			InAppMessage message = new InAppMessage(manager, null, type);
 			if (type == InAppMessageType.RECEIVED_DATA) {
 				try {
 					Reader reader = new StringReader(bundle.getString(RabbitMQService.DATA_STRING));
 					document = saxBuilder.build(reader);
 					message.setObject(new User(document.getRootElement()));
 				} catch (Exception e) {
-					fireError(e);
+					Log.e(LOGTAG, e.toString());
 				}
 
 			}
-			fireMessage(message);
+			notifyDataEventListener(new DataEvent(manager, message));
+			//			fireMessage(message);
 		}
+	}
+	
+	@Override
+	public boolean init(Context context) {
+		boolean b = false;
+		bindToService(context);
+		b = connect();
+		b = subscribeToMainChannel();
+		return b;
 	}
 
 	/*
@@ -81,40 +94,49 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 	 * @see com.android.helpme.demo.manager.RabbitMQManagerInterface#connect()
 	 */
 	@Override
-	public Runnable connect() {
-		return new Runnable() {
+	public boolean connect() {
+		try {
+			long time = System.currentTimeMillis();
+			sendToService(createConnectBundle());
 
-			@Override
-			public void run() {
-				try {
-					sendToService(createConnectBundle());
-				} catch (RemoteException e) {
-					fireError(e);
+			while (time + TIMEOUT <= System.currentTimeMillis()) {
+				if (rabbitMQService.isConnected()) {
+					return true;
 				}
 			}
-		};
+			//TODO Timeout exception?
+		} catch (RemoteException e) {
+			Log.e(LOGTAG, "connect: " +e.toString());
+		}catch (UnboundException e) {
+			Log.e(LOGTAG, "connect: " +e.toString());
+		}
+		return false;
 	}
 
 	@Override
-	public Runnable disconnect() {
-		return new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					sendToService(createDisconnectBundle());
-				} catch (RemoteException e) {
-					fireError(e);
+	public boolean disconnect() {
+		try {
+			long time = System.currentTimeMillis();
+			sendToService(createDisconnectBundle());
+			while (time + TIMEOUT <= System.currentTimeMillis()) {
+				if (!rabbitMQService.isConnected()) {
+					return true;
 				}
-
 			}
-		};
+			//TODO Timeout exception?
+		} catch (RemoteException e) {
+			Log.e(LOGTAG, "disconnect: "+e.toString());
+		} catch (UnboundException e) {
+			Log.e(LOGTAG, "disconnect: "+e.toString());
+		}
+		return false;
 	}
 
 	private RabbitMQManager() {
 		exchangeNames = new ArrayList<String>();
 		bound = false;
 		saxBuilder  = new SAXBuilder();
+		dataEventListeners = new HashSet<DataEventListener>();
 	}
 
 	/*
@@ -135,7 +157,7 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 	 * @see com.android.helpme.demo.manager.RabbitMQManagerInterface#getString()
 	 */
 	@Override
-	public Runnable subscribeToMainChannel() {
+	public boolean subscribeToMainChannel() {
 		return subscribeToChannel("main");
 	}
 
@@ -145,39 +167,27 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 	}
 
 	@Override
-	protected InAppMessage getMessage() {
-		return message;
-	}
-
-	@Override
-	protected void setMessage(InAppMessage inAppMessage) {
-		message = inAppMessage;
-
-	}
-
-	@Override
-	public AbstractMessageSystemInterface getManager() {
-		return rabbitMQManager;
-	}
-
-	@Override
-	public Runnable subscribeToChannel(String exchangeName) {
+	public boolean subscribeToChannel(String exchangeName) {
 		return subscribeToChannel(exchangeName, ExchangeType.fanout);
 	}
 
 	@Override
-	public Runnable subscribeToChannel(final String exchangeName, final ExchangeType type) {
-		return new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					sendToService(createSubscribeToBundle(exchangeName, type));
-				} catch (RemoteException e) {
-					fireError(e);
+	public boolean subscribeToChannel(final String exchangeName, final ExchangeType type) {
+		try {
+			long time = System.currentTimeMillis();
+			sendToService(createSubscribeToBundle(exchangeName, type));
+			while (time + TIMEOUT <= System.currentTimeMillis()) {
+				if (rabbitMQService.getSubscribedChannelNames().contains(exchangeName)) {
+					return true;
 				}
 			}
-		};
+			//TODO Timeout exception?
+		} catch (RemoteException e) {
+			Log.e(LOGTAG, "subscribe to Channel: " +e.toString());
+		} catch (UnboundException e) {
+			Log.e(LOGTAG, "subscribe to Channel: " +e.toString());
+		}
+		return false;
 	}
 
 	@Override
@@ -189,7 +199,9 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 				try {
 					sendToService(createSendDataBundle(exchangeName, string));
 				} catch (RemoteException e) {
-					fireError(e);
+					Log.e(LOGTAG, "Send String On Channel: " +e.toString());
+				} catch (UnboundException e) {
+					Log.e(LOGTAG, "Send String On Channel: " +e.toString());
 				}
 			}
 		};
@@ -215,18 +227,9 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 	}
 
 	@Override
-	public Runnable endSubscribtionToChannel(final String exchangeName) {
-		return new Runnable() {
-
-			@Override
-			public void run() {
-//				try {
-//					sendToService(createEndSubscribtionBundle(exchangeName));
-//				} catch (RemoteException e) {
-//					fireError(e);
-//				}
-			}
-		};
+	public boolean endSubscribtionToChannel(final String exchangeName) {
+				//TODO
+		return false;
 	}
 
 	/*
@@ -234,67 +237,50 @@ public class RabbitMQManager extends AbstractMessageSystem implements RabbitMQMa
 	 * @see com.android.helpme.demo.interfaces.RabbitMQManagerInterface#bindToService(android.content.Context)
 	 */
 	@Override
-	public Runnable bindToService(final Context context) {
-		return new Runnable() {
+	public void bindToService(final Context context) {
+		if (!bound) {
+			Log.i(LOGTAG, "Binding of Service");
+			// we create a new Messanger with our defined handler
+			rabbitMQService = new RabbitMQService(context);
+			rabbitMQService.addObserver(manager);
+			bound = true;
+		}
+	}
 
-			@Override
-			public void run() {
-				if (!bound) {
-					Log.i(LOGTAG, "Binding of Service");
-					// we create a new Messanger with our defined handler
-					rabbitMQService = new RabbitMQService(context);
-					bound = true;
-					fireMessageFromManager(rabbitMQService, InAppMessageType.BOUND_TO_SERVICE);
-				}
-			}
-		};
+	@Override
+	public void unbindFromService(final Context context) {
+		Log.i(LOGTAG, "unBinding of Service");
+		bound = false;
+		rabbitMQService.deleteObservers();
+		if (rabbitMQService.isConnected()) {
+			rabbitMQService.disconnect().run();
+		}
+		rabbitMQService = null;
 	}
 	
 	@Override
-	public Runnable unbindFromService(final Context context) {
-		return new Runnable() {
-			
-			@Override
-			public void run() {
-				Log.i(LOGTAG, "unBinding of Service");
-				bound = false;
-				rabbitMQService.deleteObservers();
-				if (rabbitMQService.isConnected()) {
-					rabbitMQService.disconnect().run();
-				}
-				rabbitMQService = null;
-				fireMessageFromManager(null, InAppMessageType.UNBOUND_FROM_SERVICE);
-			}
-		};
+	public void addDataEventListener(DataEventListener dataEventListener) {
+		dataEventListeners.add(dataEventListener);
 	}
-
+	
 	@Override
-	public Runnable showNotification(final String text, final String title) {
-		return new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					sendToService(createShowNotificationBundle(text, title));
-				} catch (RemoteException e) {
-					fireError(e);
-				}
-			}
-		};
+	public void removeDataEventListener(DataEventListener dataEventListener) {
+		dataEventListeners.remove(dataEventListener);		
+	}
+	
+	private void notifyDataEventListener(DataEvent dataEvent){
+		for (DataEventListener listener : dataEventListeners) {
+			listener.getDataEvent(dataEvent);
+		}
 	}
 
-	@Override
-	public Runnable showNotification(UserInterface userInterface) {
-		return showNotification("This Person needs your Help: " + userInterface.getName(), "New Help Request");
-	}
-
-	private void sendToService(Bundle bundle) throws RemoteException {
+	private void sendToService(Bundle bundle) throws RemoteException, UnboundException {
 		if (bound) {
 			Message message = new Message();
 			message.setData(bundle);
 			rabbitMQService.handleIncomingMessage(message);
 		} else {
-			fireError(new UnboundException());
+			throw new UnboundException();
 		}
 	}
 

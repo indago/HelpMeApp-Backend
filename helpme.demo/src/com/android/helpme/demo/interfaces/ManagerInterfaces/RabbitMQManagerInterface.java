@@ -1,15 +1,13 @@
-package com.android.helpme.demo.interfaces;
+package com.android.helpme.demo.interfaces.ManagerInterfaces;
 
-import java.io.IOException;
 
-import android.app.Activity;
 import android.content.Context;
-import android.os.IBinder;
 
+import com.android.helpme.demo.eventmanagement.eventListeners.DataEventListener;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ShutdownSignalException;
 
-public interface RabbitMQManagerInterface {
+public interface RabbitMQManagerInterface extends ManagerInterface {
 	
 	public static enum ExchangeType{fanout, driect};
 
@@ -17,19 +15,19 @@ public interface RabbitMQManagerInterface {
 	 * Connects to RabbitMQ and generates new Main Channel
 	 * @return
 	 */
-	public  Runnable connect();
+	public  boolean connect();
 	
 	/**
 	 * Disconnects to RabbitMQ
 	 * @return
 	 */
-	public Runnable disconnect();
+	public boolean disconnect();
 	/**
 	 * binds 
 	 * @param context
 	 * @return
 	 */
-	public Runnable bindToService(Context context);
+	public void bindToService(Context context);
 
 	/**
 	 * Sends {@link String} on main channel with the name "main"
@@ -54,27 +52,27 @@ public interface RabbitMQManagerInterface {
 	 * Subscribes to main exchange {@link Channel}
 	 * @return
 	 */
-	public  Runnable subscribeToMainChannel();
+	public  boolean subscribeToMainChannel();
 	/**
 	 * Subscribes to exchange {@link Channel} with given name with {@link ExchangeType} "fanout"
 	 * @param exchangeName
 	 * @return
 	 */
-	public Runnable subscribeToChannel(String exchangeName);
+	public boolean subscribeToChannel(String exchangeName);
 	/**
 	 * Subscribes to exchange {@link Channel} with given namen and given {@link ExchangeType}
 	 * @param exchangeName
 	 * @param type
 	 * @return
 	 */
-	public Runnable subscribeToChannel(String exchangeName,ExchangeType type);
+	public boolean subscribeToChannel(String exchangeName,ExchangeType type);
 	
 	/**
-	 * Ends subscribtion to exchange {@link Channel} with given name and sends the name as {@link ShutdownSignalException} reason
+	 * Ends subscription to exchange {@link Channel} with given name and sends the name as {@link ShutdownSignalException} reason
 	 * @param exchangeName
 	 * @return
 	 */
-	public Runnable endSubscribtionToChannel(String exchangeName);
+	public boolean endSubscribtionToChannel(String exchangeName);
 	
 	/**
 	 * Shows a Android Notification with the specified Text and Title 
@@ -82,9 +80,14 @@ public interface RabbitMQManagerInterface {
 	 * @param title
 	 * @return
 	 */
-	public Runnable showNotification(String text, String title);
+	public void unbindFromService(Context context);
+	/**
+	 * binds to service and subscribes to main {@link Channel}
+	 * @param context
+	 * @return
+	 */
+	public boolean init(Context context);
 	
-	public Runnable showNotification(UserInterface userInterface);
-	
-	public Runnable unbindFromService(Context context);
+	public void addDataEventListener(DataEventListener dataEventListener);
+	public void removeDataEventListener(DataEventListener dataEventListener);
 }

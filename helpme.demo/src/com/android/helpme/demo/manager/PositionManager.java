@@ -4,7 +4,12 @@
 package com.android.helpme.demo.manager;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
+import com.android.helpme.demo.eventmanagement.eventListeners.PositionEventListener;
+import com.android.helpme.demo.eventmanagement.events.PositionEvent;
 import com.android.helpme.demo.interfaces.PositionInterface;
 import com.android.helpme.demo.interfaces.PositionManagerInterface;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
@@ -30,11 +35,12 @@ import android.util.Log;
  * @author Andreas Wieland
  * 
  */
-public class PositionManager extends AbstractMessageSystem implements PositionManagerInterface {
+public class PositionManager implements PositionManagerInterface {
 	private static final String LOGTAG = PositionManager.class.getSimpleName();
-	private InAppMessage message;
+	//	private InAppMessage message;
 	private static PositionManager manager;
 	private LocationManager locationManager;
+	private Set<PositionEventListener> listeners; 
 	private Location lastLocation;
 	private boolean started;
 	private Handler handler;
@@ -42,18 +48,29 @@ public class PositionManager extends AbstractMessageSystem implements PositionMa
 
 	/**
 	 * 
+	 * @param context
 	 */
 	private PositionManager(Context context) {
 		locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		lastLocation = null;
 		started = false;
 		handler = new Handler();
+		listeners = new HashSet<PositionEventListener>();
 	}
 
+	/**
+	 * 
+	 * @return {@link PositionManager} if set else null
+	 */
 	public static PositionManagerInterface getInstance() {
 		return manager;
 	}
-
+	
+	/**
+	 * creates new {@link PositionManager}
+	 * @param context
+	 * @return {@link PositionManager}
+	 */
 	public static PositionManager getInstance(Context context) {
 		if (manager == null) {
 			manager = new PositionManager(context);
@@ -61,49 +78,8 @@ public class PositionManager extends AbstractMessageSystem implements PositionMa
 		return manager;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.indago.android.demo.messagesystem.AbstractMessageSystem#getLogTag()
-	 */
-	@Override
 	public String getLogTag() {
 		return LOGTAG;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.indago.android.demo.messagesystem.AbstractMessageSystem#getMessage()
-	 */
-	@Override
-	protected InAppMessage getMessage() {
-		return message;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.indago.android.demo.messagesystem.AbstractMessageSystem#setMessage
-	 * (com.indago.android.demo.messagesystem.InAppMessage)
-	 */
-	@Override
-	protected void setMessage(InAppMessage inAppMessage) {
-		this.message = inAppMessage;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.indago.android.demo.messagesystem.AbstractMessageSystem#getManager()
-	 */
-	@Override
-	public AbstractMessageSystemInterface getManager() {
-		return manager;
 	}
 
 	@Override
@@ -111,14 +87,13 @@ public class PositionManager extends AbstractMessageSystem implements PositionMa
 		if (!SimpleSelectionStrategy.isPositionRelevant(location)) {
 			return;
 		}
-//		if (lastLocation != null && !SimpleSelectionStrategy.isPositionRelevant(lastLocation, location)) {
-//			return;
-//		}
+		//		if (lastLocation != null && !SimpleSelectionStrategy.isPositionRelevant(lastLocation, location)) {
+		//			return;
+		//		}
 		lastLocation = location;
-		Position wayPointData = new Position(location);
+		Position position = new Position(location);
 		Log.i(getLogTag(), "new Location arrived");
-
-		fireMessageFromManager(wayPointData, InAppMessageType.LOCATION);
+		notifyListeners(new PositionEvent(manager, position));
 	}
 
 	@Override
@@ -143,8 +118,8 @@ public class PositionManager extends AbstractMessageSystem implements PositionMa
 	 * @see com.android.helpme.demo.manager.PositionManagerInterface#startLocationTracking()
 	 */
 	@Override
-	public Runnable startLocationTracking() {
-		return new Runnable() {
+	public void startLocationTracking() {
+		handler.post(new Runnable() {
 
 			@Override
 			public void run() {
@@ -158,62 +133,49 @@ public class PositionManager extends AbstractMessageSystem implements PositionMa
 
 				lastLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 				if (lastLocation != null && SimpleSelectionStrategy.isPositionRelevant(lastLocation)) {
-					fireMessageFromManager(new Position(lastLocation), InAppMessageType.LOCATION);
-				} 
-
-
-				handler.post(new Runnable() {
-
-					@Override
-					public void run() {
-						Log.i(LOGTAG, "requesting Location");
-						if(locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
-//							Criteria crit = new Criteria();
-//							crit.setPowerRequirement(Criteria.POWER_LOW);
-//							crit.setAccuracy(Criteria.ACCURACY_COARSE);
-//							String provider = locationManager.getBestProvider(crit, false);
-							locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, manager);
-							started = true;
-						}
-						if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-//							Criteria crit2 = new Criteria();
-//							crit2.setAccuracy(Criteria.ACCURACY_FINE);
-//							provider2 = locationManager.getBestProvider(crit2, false);
-							locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, manager);
-							started = true;
-						}
-					}
-				});
-
+					notifyListeners(new PositionEvent(manager, new Position(lastLocation)));
+				}
 			}
+		});
 
-		};
 
+		handler.post(new Runnable() {
+
+			@Override
+			public void run() {
+				Log.i(LOGTAG, "requesting Location");
+				if(locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
+					//							Criteria crit = new Criteria();
+					//							crit.setPowerRequirement(Criteria.POWER_LOW);
+					//							crit.setAccuracy(Criteria.ACCURACY_COARSE);
+					//							String provider = locationManager.getBestProvider(crit, false);
+					locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, manager);
+					started = true;
+				}
+				if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+					//							Criteria crit2 = new Criteria();
+					//							crit2.setAccuracy(Criteria.ACCURACY_FINE);
+					//							provider2 = locationManager.getBestProvider(crit2, false);
+					locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, manager);
+					started = true;
+				}
+			}
+		});
 	}
 
 	/* (non-Javadoc)
 	 * @see com.android.helpme.demo.manager.PositionManagerInterface#stopLocationTracking()
 	 */
 	@Override
-	public Runnable stopLocationTracking() {
-		return new Runnable() {
+	public void stopLocationTracking() {
+		handler.post(new Runnable() {
 
 			@Override
 			public void run() {
-//				if (!started) {
-//					return;
-//				}
-//				if (Looper.myLooper() == null) {
-//					Looper.prepare();
-//				}
-//				
-
 				locationManager.removeUpdates(manager);
-//				Looper.myLooper().quit();
 				started = false;
 			}
-		};
-
+		});
 	}
 
 	/* (non-Javadoc)
@@ -227,5 +189,20 @@ public class PositionManager extends AbstractMessageSystem implements PositionMa
 	@Override
 	public Position getLastPosition() {
 		return new Position(lastLocation);
+	}
+
+	public void addPositionEventListener(PositionEventListener positionEventListener){
+		listeners.add(positionEventListener);
+	}
+
+	public void removePositionEventListener(PositionEventListener positionEventListener){
+		listeners.remove(positionEventListener);
+	}
+
+	private void notifyListeners(PositionEvent positionEvent){
+		for (Iterator iterator = listeners.iterator(); iterator.hasNext();) {
+			PositionEventListener eventListener = (PositionEventListener) iterator.next();
+			eventListener.getPositionEvent(positionEvent);
+		}
 	}
 }

@@ -8,16 +8,19 @@ import java.util.Observable;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.jdom2.DataConversionException;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
+import android.util.Log;
+
 import com.android.helpme.demo.interfaces.PositionManagerInterface;
-import com.android.helpme.demo.interfaces.RabbitMQManagerInterface;
 import com.android.helpme.demo.interfaces.UserInterface;
-import com.android.helpme.demo.interfaces.UserManagerInterface;
-import com.android.helpme.demo.interfaces.RabbitMQManagerInterface.ExchangeType;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.RabbitMQManagerInterface;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.UserManagerInterface;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.RabbitMQManagerInterface.ExchangeType;
 import com.android.helpme.demo.manager.PositionManager;
 import com.android.helpme.demo.manager.RabbitMQManager;
 import com.android.helpme.demo.manager.UserManager;
@@ -27,18 +30,16 @@ import com.android.helpme.demo.utils.position.Position;
  * @author Andreas Wieland
  *
  */
-public class Task extends Observable{
-	public static final String TASK = "task",USER = "user", START_TIME ="start_time",START_POSITION = "start_position",STOP_POSITION = "stop_position", STOP_TIME="stop_time",SUCCESSFUL ="successful",FAILED ="failed", RUNNING = "running", LOOKING = "looking", STATE = "state";
-	public static final int LONGDISTANCE = 5000;
-	public static final int MIDDISTANCE = 500;
-	public static final int SHORTDISTANCE = 50;
-	public static final long TIMERDELAY = 60000;
-	private UserInterface user;
+public class Task extends Observable implements TaskInterface{
+	private UserInterface helpee;
+	private UserInterface helper;
 	private Timer timer;
 	private boolean answered;
 	private String exchangeName;
 	private Position startPosition;
+	private Position stopPosition;
 	private long startTime;
+	private long stopTime;
 	private String state;
 	private XMLOutputter xmlOutputter;
 	private Document document;
@@ -54,159 +55,269 @@ public class Task extends Observable{
 		rabbitMQManagerInterface = RabbitMQManager.getInstance();
 		positionManagerInterface = PositionManager.getInstance();
 		answered = false;
-		user = null;
+		helpee = null;
 		state = null;
 		xmlOutputter = new XMLOutputter(Format.getCompactFormat());
-		
+		startPosition = null;
+		stopPosition = null;
+		startTime = -1;
+		stopTime = -1;
 	}
 
-	/**
-	 * gets called by Helper
-	 * @param user
+	/* (non-Javadoc)
+	 * @see com.android.helpme.demo.utils.TaskInterface#startTask(com.android.helpme.demo.interfaces.UserInterface)
 	 */
+	@Override
 	public void startTask(UserInterface user) {
-		run(positionManagerInterface.startLocationTracking());
+		helper = userManagerInterface.getThisUser();
+		helpee = user;
+//		setAnswered();
+
+		positionManagerInterface.startLocationTracking();
 		exchangeName = user.getId();
 		startPosition = user.getPosition();
 		startTime = user.getPosition().getMeasureDateTime();
-		run(rabbitMQManagerInterface.subscribeToChannel(exchangeName, ExchangeType.fanout));
-		setUser(user);
-		state = RUNNING;
+		rabbitMQManagerInterface.subscribeToChannel(exchangeName, ExchangeType.fanout);
+		state = LOOKING;
 	}
-	
-	/**
-	 * gets called by Help Seeker
+
+	/* (non-Javadoc)
+	 * @see com.android.helpme.demo.utils.TaskInterface#startTask()
 	 */
+	@Override
 	public void startTask() {
-		run(positionManagerInterface.startLocationTracking());
+		helpee = userManagerInterface.getThisUser();
+		positionManagerInterface.startLocationTracking();
 		exchangeName = userManagerInterface.getThisUser().getId();
 		startTime = System.currentTimeMillis();
-		run(rabbitMQManagerInterface.subscribeToChannel(exchangeName, ExchangeType.fanout));
-		state = RUNNING;
+
+		rabbitMQManagerInterface.subscribeToChannel(exchangeName, ExchangeType.fanout);
+		state = LOOKING;
 		timer = new Timer();
 		timer.schedule(createTimerTask(), TIMERDELAY);
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see com.android.helpme.demo.utils.TaskInterface#sendPosition(com.android.helpme.demo.utils.position.Position)
+	 */
+	@Override
 	public void sendPosition(Position position){
+		//TODO
 		Element object;
 		object = UserManager.getInstance().getThisUser().getElement();
-		userManagerInterface.thisUser().updatePosition(position);
+		//		userManagerInterface.thisUser().updatePosition(position);
 		object.addContent(position.getElement());
 		document = new Document(object);
-//		if (answered) {
-//			run(rabbitMQManagerInterface.sendStringOnChannel(xmlOutputter.outputString(document), exchangeName));
-//		}else {
-			run(rabbitMQManagerInterface.sendStringOnMain(xmlOutputter.outputString(document)));
-//		}
+		//		if (answered) {
+		//			run(rabbitMQManagerInterface.sendStringOnChannel(xmlOutputter.outputString(document), exchangeName));
+		//		}else {
+		run(rabbitMQManagerInterface.sendStringOnMain(xmlOutputter.outputString(document)));
+		//		}
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see com.android.helpme.demo.utils.TaskInterface#isAnswered()
+	 */
+	@Override
 	public Boolean isAnswered(){
 		return answered;
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see com.android.helpme.demo.utils.TaskInterface#getUser()
+	 */
+	@Override
 	public UserInterface getUser() {
-		return user;
+		return helpee;
 	}
 
 	private void run(Runnable runnable){
 		ThreadPool.runTask(runnable);
 	}
-	
-	private void setUser(UserInterface user) {
-		answered = true;
-		this.startPosition = user.getPosition();
-		this.user = user;
-	}
+	/* (non-Javadoc)
+	 * @see com.android.helpme.demo.utils.TaskInterface#getDistance()
+	 */
+	@Override
 	public double getDistance(){
-		Position helperPosition = this.user.getPosition();
+		Position helperPosition = this.helpee.getPosition();
 		Position ourPosition = userManagerInterface.thisUser().getPosition();
 		return helperPosition.calculateSphereDistance(ourPosition);
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see com.android.helpme.demo.utils.TaskInterface#updatePosition(com.android.helpme.demo.interfaces.UserInterface)
+	 */
+	@Override
 	public void updatePosition(UserInterface userInterface) {
-		// if our Task is not answered yet, with this it is now
+		// if we are the helper we update the helpee's position
+		if (userManagerInterface.getThisUser().isHelper()) {
+			helpee.updatePosition(userInterface.getPosition());
+		}else {
+			helper.updatePosition(userInterface.getPosition());
+		}
+		/*// if our Task is not answered yet, with this it is now
 		if (!answered) {
 			setUser(userInterface);
 		}else {
-			this.user.updatePosition(userInterface.getPosition());
-		}
+			this.helpee.updatePosition(userInterface.getPosition());
+		}*/
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see com.android.helpme.demo.utils.TaskInterface#isUserInRange(int)
+	 */
+	@Override
 	public boolean isUserInRange(int range) {
 		if (answered) {
-			return userManagerInterface.getThisUser().getDistanceTo(user) <= range;
+			return userManagerInterface.getThisUser().getDistanceTo(helpee) <= range;
 		}
 		return false;
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see com.android.helpme.demo.utils.TaskInterface#isUserInShortDistance()
+	 */
+	@Override
 	public boolean isUserInShortDistance(){
 		return isUserInRange(SHORTDISTANCE);
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see com.android.helpme.demo.utils.TaskInterface#isUserInMidDistance()
+	 */
+	@Override
 	public boolean isUserInMidDistance() {
 		return isUserInRange(MIDDISTANCE);
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see com.android.helpme.demo.utils.TaskInterface#isUserInLongDistance()
+	 */
+	@Override
 	public boolean isUserInLongDistance() {
 		return isUserInRange(LONGDISTANCE);
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see com.android.helpme.demo.utils.TaskInterface#setSuccesfull()
+	 */
+	@Override
 	public void setSuccesfull() {
 		if (state.equalsIgnoreCase(RUNNING) && answered) {
 			state = SUCCESSFUL;
 		}
-		
 	}
-	
+
+	@Override
+	public void setAnswered() {
+		answered = true;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.android.helpme.demo.utils.TaskInterface#state()
+	 */
+	@Override
 	public String state(){
 		return state;
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see com.android.helpme.demo.utils.TaskInterface#setFailed()
+	 */
+	@Override
 	public void setFailed() {
 		if (state.equalsIgnoreCase(RUNNING)) {
 			state = FAILED;
 		}
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see com.android.helpme.demo.utils.TaskInterface#stopUnfinishedTask()
+	 */
+	@Override
 	public void stopUnfinishedTask(){
-		run(positionManagerInterface.stopLocationTracking());
-		run(rabbitMQManagerInterface.endSubscribtionToChannel(exchangeName));
-		if (user != null) {
-			userManagerInterface.removeUser(user);
+		positionManagerInterface.stopLocationTracking();
+		rabbitMQManagerInterface.endSubscribtionToChannel(exchangeName);
+		if (helpee != null) {
+			userManagerInterface.removeUser(helpee);
 		}
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see com.android.helpme.demo.utils.TaskInterface#stopTask()
+	 */
+	@Override
 	public Element stopTask() {
-		run(positionManagerInterface.stopLocationTracking());
-		sendPosition(user.getPosition());
-		
-		sendPosition(user.getPosition());
-		run(rabbitMQManagerInterface.endSubscribtionToChannel(exchangeName));
-		Element element = new Element(TASK);
-		element.addContent(user.getElement());
-		element.setAttribute(START_TIME, new Long(startTime).toString());
-		element.setAttribute(STOP_TIME, new Long(System.currentTimeMillis()).toString());
-		element.addContent(startPosition.getElementAs(START_POSITION));
+		positionManagerInterface.stopLocationTracking();
+		stopTime = System.currentTimeMillis();
+		sendPosition(helpee.getPosition());
+		sendPosition(helpee.getPosition());
+
+		rabbitMQManagerInterface.endSubscribtionToChannel(exchangeName);
 		if (positionManagerInterface.getLastPosition() == null) {
-			element.addContent(startPosition.getElementAs(STOP_POSITION));
+			stopPosition = startPosition;
 		}else {
-			element.addContent(positionManagerInterface.getLastPosition().getElementAs(STOP_POSITION));
+			stopPosition = positionManagerInterface.getLastPosition();
 		}
-		
-//		jsonObject.put(STATE, state);
+		return toXML();
+	}
+
+	@Override
+	public Element toXML() {
+		Element element = new Element(TASK);
+		if (startPosition != null) {
+			element.addContent(startPosition.getElementAs(START_POSITION));
+		}
+		if (stopPosition != null) {
+			element.addContent(stopPosition.getElementAs(STOP_POSITION));
+		}
+		if (helpee != null) {
+			element.addContent(helpee.getElement(HELPEE));
+		}
+		if (helper != null) {
+			element.addContent(helper.getElement(HELPER));
+		}
+		if (startTime != -1) {
+			element.setAttribute(START_TIME, new Long(startTime).toString());	
+		}
+		if (stopTime != -1) {
+			element.setAttribute(STOP_TIME, new Long(stopTime).toString());
+		}
+		element.setText(state);
 		return element;
 	}
-	
+
+	@Override
+	public void fromXML(Element element) {
+		try{
+			helpee = new User(element.getChild(HELPEE));
+			helper = new User(element.getChild(HELPER));
+			state = element.getText();
+			if (element.getAttribute(STOP_TIME) != null) {
+				stopTime = element.getAttribute(STOP_TIME).getLongValue();
+			}
+			if (element.getAttribute(START_TIME) != null) {
+				startTime = element.getAttribute(START_TIME).getLongValue();
+			}//TODO
+		}catch (DataConversionException e) {
+			Log.e(TASK, e.toString());
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see com.android.helpme.demo.utils.TaskInterface#isSuccsessfull()
+	 */
+	@Override
 	public boolean isSuccsessfull() {
 		if (state.equalsIgnoreCase(SUCCESSFUL)) {
 			return true;
 		}
 		return false;
 	}
-	
+
 	private TimerTask createTimerTask(){
 		return new TimerTask() {
-			
+
 			@Override
 			public void run() {
 				if (!answered) {
