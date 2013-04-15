@@ -92,6 +92,9 @@ public class RecievedDataManager implements RecievedDataManagerInterface{
 
 	public void handleIncomingUserAsHelpee(User incomingUser) {
 		//TODO
+		if (TaskManager.getInstance().getTask().isAnswered()) {
+			TaskManager.getInstance().getTask().setAnswered();
+		}
 		TaskManager.getInstance().getTask().updatePosition(incomingUser);
 	}
 	/*	userManagerInterface.addUser(incomingUser);

@@ -13,13 +13,15 @@ public interface RabbitMQSerivceInterface {
 	 * Connects to RabbitMQ and generates new Main Channel
 	 * @return
 	 */
-	public  Runnable connect();
+	public  Runnable connectRunnable();
+	public boolean connect();
 	
 	/**
 	 * Disconnects from RabbitMQ 
 	 * @return
 	 */
-	public Runnable disconnect();
+	public Runnable disconnectRunnable();
+	public boolean disconnect();
 
 	/**
 	 * Sends {@link String} on the exchange {@link Channel} with the given Name
@@ -27,19 +29,23 @@ public interface RabbitMQSerivceInterface {
 	 * @param exchangeName
 	 * @return
 	 */
-	public  Runnable sendStringOnChannel(String string, String exchangeName);
+	public  Runnable sendStringOnChannelRunnable(String string, String exchangeName);
+	public boolean sendStringOnChannel(String string, String exchangeName);
+	
 	/**
 	 * Sends {@link String} on all subscribed Exchange {@link Channel}s 
 	 * @return
 	 */
-	public Runnable subscribeToChannel(String exchangeName,String type);
+	public Runnable subscribeToChannelRunnable(String exchangeName,String type);
+	public boolean subscribeToChannel(String exchangeName,String type);
 	
 	/**
 	 * Ends subscribtion to exchange {@link Channel} with given name and sends the name as {@link ShutdownSignalException} reason
 	 * @param exchangeName
 	 * @return
 	 */
-	public Runnable endSubscribtionToChannel(String exchangeName);
+	public Runnable endSubscribtionToChannelRunnable(String exchangeName);
+	public boolean endSubscribtionToChannel(String exchangeName);
 	
 	/**
 	 * Show a notification while this service is running.

@@ -26,7 +26,7 @@ import com.android.helpme.demo.eventmanagement.eventListeners.DataEventListener;
 import com.android.helpme.demo.eventmanagement.events.DataEvent;
 import com.android.helpme.demo.exceptions.UnboundException;
 import com.android.helpme.demo.interfaces.UserInterface;
-import com.android.helpme.demo.interfaces.ManagerInterfaces.RabbitMQManagerInterface;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.NetworkManagerInterface;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystemInterface;
 import com.android.helpme.demo.messagesystem.InAppMessage;
@@ -35,10 +35,10 @@ import com.android.helpme.demo.rabbitMQ.RabbitMQService;
 import com.android.helpme.demo.utils.ThreadPool;
 import com.android.helpme.demo.utils.User;
 
-public class RabbitMQManager  implements RabbitMQManagerInterface, Observer{
-	public static final String LOGTAG = RabbitMQManager.class.getSimpleName();
+public class NetworkManager  implements NetworkManagerInterface, Observer{
+	public static final String LOGTAG = NetworkManager.class.getSimpleName();
 	private static int TIMEOUT = 1000;
-	private static RabbitMQManager manager;
+	private static NetworkManager manager;
 	private Set<DataEventListener> dataEventListeners;
 	private ArrayList<String> exchangeNames;
 	private boolean bound;
@@ -46,9 +46,9 @@ public class RabbitMQManager  implements RabbitMQManagerInterface, Observer{
 	private SAXBuilder saxBuilder;
 	private Document document;
 
-	public static RabbitMQManager getInstance() {
+	public static NetworkManager getInstance() {
 		if (manager == null) {
-			manager = new RabbitMQManager();
+			manager = new NetworkManager();
 		}
 		return manager;
 	}
@@ -78,7 +78,7 @@ public class RabbitMQManager  implements RabbitMQManagerInterface, Observer{
 			//			fireMessage(message);
 		}
 	}
-	
+
 	@Override
 	public boolean init(Context context) {
 		boolean b = false;
@@ -95,44 +95,46 @@ public class RabbitMQManager  implements RabbitMQManagerInterface, Observer{
 	 */
 	@Override
 	public boolean connect() {
-		try {
+//		try {
 			long time = System.currentTimeMillis();
-			sendToService(createConnectBundle());
+//			sendToService(createConnectBundle());
+			return rabbitMQService.connect();
 
-			while (time + TIMEOUT <= System.currentTimeMillis()) {
-				if (rabbitMQService.isConnected()) {
-					return true;
-				}
-			}
+//			while (time + TIMEOUT <= System.currentTimeMillis()) {
+//				if (rabbitMQService.isConnected()) {
+//					return true;
+//				}
+//			}
 			//TODO Timeout exception?
-		} catch (RemoteException e) {
-			Log.e(LOGTAG, "connect: " +e.toString());
-		}catch (UnboundException e) {
-			Log.e(LOGTAG, "connect: " +e.toString());
-		}
-		return false;
+//		} catch (RemoteException e) {
+//			Log.e(LOGTAG, "connect: " +e.toString());
+//		}catch (UnboundException e) {
+//			Log.e(LOGTAG, "connect: " +e.toString());
+//		}
+//		return false;
 	}
 
 	@Override
 	public boolean disconnect() {
-		try {
-			long time = System.currentTimeMillis();
-			sendToService(createDisconnectBundle());
-			while (time + TIMEOUT <= System.currentTimeMillis()) {
-				if (!rabbitMQService.isConnected()) {
-					return true;
-				}
-			}
-			//TODO Timeout exception?
-		} catch (RemoteException e) {
-			Log.e(LOGTAG, "disconnect: "+e.toString());
-		} catch (UnboundException e) {
-			Log.e(LOGTAG, "disconnect: "+e.toString());
-		}
-		return false;
+		return rabbitMQService.disconnect();
+//		try {
+//			long time = System.currentTimeMillis();
+//			sendToService(createDisconnectBundle());
+//			while (time + TIMEOUT <= System.currentTimeMillis()) {
+//				if (!rabbitMQService.isConnected()) {
+//					return true;
+//				}
+//			}
+//			//TODO Timeout exception?
+//		} catch (RemoteException e) {
+//			Log.e(LOGTAG, "disconnect: "+e.toString());
+//		} catch (UnboundException e) {
+//			Log.e(LOGTAG, "disconnect: "+e.toString());
+//		}
+//		return false;
 	}
 
-	private RabbitMQManager() {
+	private NetworkManager() {
 		exchangeNames = new ArrayList<String>();
 		bound = false;
 		saxBuilder  = new SAXBuilder();
@@ -147,8 +149,9 @@ public class RabbitMQManager  implements RabbitMQManagerInterface, Observer{
 	 * .lang.String)
 	 */
 	@Override
-	public Runnable sendStringOnMain(final String string) {
-		return sendStringOnChannel(string, "main");
+	public void sendStringOnMain(final String string) {
+//		sendStringOnChannel(string, "main");
+		rabbitMQService.sendStringOnChannel(string, "main");
 	}
 
 	/*
@@ -173,62 +176,53 @@ public class RabbitMQManager  implements RabbitMQManagerInterface, Observer{
 
 	@Override
 	public boolean subscribeToChannel(final String exchangeName, final ExchangeType type) {
-		try {
-			long time = System.currentTimeMillis();
-			sendToService(createSubscribeToBundle(exchangeName, type));
-			while (time + TIMEOUT <= System.currentTimeMillis()) {
-				if (rabbitMQService.getSubscribedChannelNames().contains(exchangeName)) {
-					return true;
-				}
+		return rabbitMQService.subscribeToChannel(exchangeName, type.name());
+//		try {
+//			long time = System.currentTimeMillis();
+//			sendToService(createSubscribeToBundle(exchangeName, type));
+//			while (time + TIMEOUT <= System.currentTimeMillis()) {
+//				if (rabbitMQService.getSubscribedChannelNames().contains(exchangeName)) {
+//					return true;
+//				}
+//			}
+//			//TODO Timeout exception?
+//		} catch (RemoteException e) {
+//			Log.e(LOGTAG, "subscribe to Channel: " +e.toString());
+//		} catch (UnboundException e) {
+//			Log.e(LOGTAG, "subscribe to Channel: " +e.toString());
+//		}
+//		return false;
+	}
+
+	@Override
+	public void sendStringOnChannel(final String string, final String exchangeName) {
+		rabbitMQService.sendStringOnChannel(string, exchangeName);
+//		try {
+//			sendToService(createSendDataBundle(exchangeName, string));
+//		} catch (RemoteException e) {
+//			Log.e(LOGTAG, "Send String On Channel: " +e.toString());
+//		} catch (UnboundException e) {
+//			Log.e(LOGTAG, "Send String On Channel: " +e.toString());
+//		}
+	}
+
+	@Override
+	public void sendStringToSubscribedChannels(final String string) {
+		for (String exchangeName : exchangeNames) {
+			/**
+			 * we dont send the message on the Main channel
+			 */
+			if (!exchangeName.equalsIgnoreCase("main")) {
+//				sendStringOnChannel(string, exchangeName);
+				rabbitMQService.sendStringOnChannel(string, exchangeName);
 			}
-			//TODO Timeout exception?
-		} catch (RemoteException e) {
-			Log.e(LOGTAG, "subscribe to Channel: " +e.toString());
-		} catch (UnboundException e) {
-			Log.e(LOGTAG, "subscribe to Channel: " +e.toString());
 		}
-		return false;
-	}
 
-	@Override
-	public Runnable sendStringOnChannel(final String string, final String exchangeName) {
-		return new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					sendToService(createSendDataBundle(exchangeName, string));
-				} catch (RemoteException e) {
-					Log.e(LOGTAG, "Send String On Channel: " +e.toString());
-				} catch (UnboundException e) {
-					Log.e(LOGTAG, "Send String On Channel: " +e.toString());
-				}
-			}
-		};
-	}
-
-	@Override
-	public Runnable sendStringToSubscribedChannels(final String string) {
-		return new Runnable() {
-
-			@Override
-			public void run() {
-				for (String exchangeName : exchangeNames) {
-					/**
-					 * we dont send the message on the Main channel
-					 */
-					if (!exchangeName.equalsIgnoreCase("main")) {
-						ThreadPool.runTask(sendStringOnChannel(string, exchangeName));
-					}
-				}
-
-			}
-		};
 	}
 
 	@Override
 	public boolean endSubscribtionToChannel(final String exchangeName) {
-				//TODO
+		//TODO
 		return false;
 	}
 
@@ -253,21 +247,21 @@ public class RabbitMQManager  implements RabbitMQManagerInterface, Observer{
 		bound = false;
 		rabbitMQService.deleteObservers();
 		if (rabbitMQService.isConnected()) {
-			rabbitMQService.disconnect().run();
+			rabbitMQService.disconnectRunnable().run();
 		}
 		rabbitMQService = null;
 	}
-	
+
 	@Override
 	public void addDataEventListener(DataEventListener dataEventListener) {
 		dataEventListeners.add(dataEventListener);
 	}
-	
+
 	@Override
 	public void removeDataEventListener(DataEventListener dataEventListener) {
 		dataEventListeners.remove(dataEventListener);		
 	}
-	
+
 	private void notifyDataEventListener(DataEvent dataEvent){
 		for (DataEventListener listener : dataEventListeners) {
 			listener.getDataEvent(dataEvent);

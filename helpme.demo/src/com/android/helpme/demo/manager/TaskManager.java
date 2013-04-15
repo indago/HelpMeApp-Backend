@@ -10,6 +10,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Observable;
@@ -29,6 +31,7 @@ import com.android.helpme.demo.eventmanagement.eventListeners.PositionEventListe
 import com.android.helpme.demo.eventmanagement.eventListeners.TaskEventListener;
 import com.android.helpme.demo.eventmanagement.events.PositionEvent;
 import com.android.helpme.demo.eventmanagement.events.TaskEvent;
+import com.android.helpme.demo.interfaces.TaskInterface;
 import com.android.helpme.demo.interfaces.UserInterface;
 import com.android.helpme.demo.interfaces.ManagerInterfaces.TaskManagerInterface;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
@@ -36,7 +39,6 @@ import com.android.helpme.demo.messagesystem.AbstractMessageSystemInterface;
 import com.android.helpme.demo.messagesystem.InAppMessage;
 import com.android.helpme.demo.messagesystem.InAppMessageType;
 import com.android.helpme.demo.utils.Task;
-import com.android.helpme.demo.utils.TaskInterface;
 import com.android.helpme.demo.utils.position.Position;
 
 /**
@@ -53,6 +55,7 @@ public class TaskManager implements TaskManagerInterface, Observer, PositionEven
 	private boolean writing = false;
 	private Element root;
 	private Document document;
+	private SecureRandom random;
 
 	public static TaskManager getInstance() {
 		if (manager == null) {
@@ -69,6 +72,7 @@ public class TaskManager implements TaskManagerInterface, Observer, PositionEven
 		root = new Element("root");
 		document = new Document(root);
 		taskEventListeners= new HashSet<TaskEventListener>();
+		random = new SecureRandom();
 	}
 	
 	@Override
@@ -117,7 +121,8 @@ public class TaskManager implements TaskManagerInterface, Observer, PositionEven
 
 	@Override
 	public void startNewTask() {
-		currentTask = new Task();
+		String id = new BigInteger(130, random).toString(32);
+		currentTask = new Task(id);
 		currentTask.addObserver(this);
 		currentTask.startTask();
 		notifyTaskEventListeners(new TaskEvent(manager, currentTask));
@@ -125,7 +130,8 @@ public class TaskManager implements TaskManagerInterface, Observer, PositionEven
 
 	@Override
 	public void startNewTask(UserInterface user) {
-		currentTask = new Task();
+		String id = new BigInteger(130, random).toString(32);
+		currentTask = new Task(id);
 		currentTask.addObserver(this);
 		currentTask.startTask(user);
 		notifyTaskEventListeners(new TaskEvent(manager, currentTask));

@@ -273,7 +273,7 @@ public class UserManager implements UserManagerInterface, PositionEventListener{
 			Log.e(LOGTAG, e.toString());
 			//			fireError(e);
 		}
-		return null;
+		return new ArrayList<User>();
 		//			}
 		//		};
 	}

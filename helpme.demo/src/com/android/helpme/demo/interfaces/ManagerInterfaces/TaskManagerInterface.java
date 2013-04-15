@@ -10,8 +10,8 @@ import org.jdom2.Element;
 import android.content.Context;
 
 import com.android.helpme.demo.eventmanagement.eventListeners.TaskEventListener;
+import com.android.helpme.demo.interfaces.TaskInterface;
 import com.android.helpme.demo.interfaces.UserInterface;
-import com.android.helpme.demo.utils.TaskInterface;
 
 /**
  * @author Andreas Wieland

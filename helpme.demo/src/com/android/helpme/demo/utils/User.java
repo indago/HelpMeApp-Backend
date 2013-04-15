@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
 import com.android.helpme.demo.interfaces.PositionInterface;
+import com.android.helpme.demo.interfaces.TaskInterface;
 import com.android.helpme.demo.interfaces.UserInterface;
 import com.android.helpme.demo.utils.position.Position;
 import com.android.helpme.demo.utils.position.SimpleSelectionStrategy;

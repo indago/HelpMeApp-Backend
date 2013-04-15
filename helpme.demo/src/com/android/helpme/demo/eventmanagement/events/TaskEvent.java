@@ -2,7 +2,7 @@ package com.android.helpme.demo.eventmanagement.events;
 
 import java.util.EventObject;
 
-import com.android.helpme.demo.utils.TaskInterface;
+import com.android.helpme.demo.interfaces.TaskInterface;
 
 /**
  * 

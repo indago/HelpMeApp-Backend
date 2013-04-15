@@ -17,12 +17,13 @@ import org.jdom2.output.XMLOutputter;
 import android.util.Log;
 
 import com.android.helpme.demo.interfaces.PositionManagerInterface;
+import com.android.helpme.demo.interfaces.TaskInterface;
 import com.android.helpme.demo.interfaces.UserInterface;
-import com.android.helpme.demo.interfaces.ManagerInterfaces.RabbitMQManagerInterface;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.NetworkManagerInterface;
 import com.android.helpme.demo.interfaces.ManagerInterfaces.UserManagerInterface;
-import com.android.helpme.demo.interfaces.ManagerInterfaces.RabbitMQManagerInterface.ExchangeType;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.NetworkManagerInterface.ExchangeType;
 import com.android.helpme.demo.manager.PositionManager;
-import com.android.helpme.demo.manager.RabbitMQManager;
+import com.android.helpme.demo.manager.NetworkManager;
 import com.android.helpme.demo.manager.UserManager;
 import com.android.helpme.demo.utils.position.Position;
 
@@ -31,6 +32,7 @@ import com.android.helpme.demo.utils.position.Position;
  *
  */
 public class Task extends Observable implements TaskInterface{
+	private String id;
 	private UserInterface helpee;
 	private UserInterface helper;
 	private Timer timer;
@@ -40,19 +42,19 @@ public class Task extends Observable implements TaskInterface{
 	private Position stopPosition;
 	private long startTime;
 	private long stopTime;
-	private String state;
+	private TaskState state;
 	private XMLOutputter xmlOutputter;
 	private Document document;
 	UserManagerInterface userManagerInterface;
-	RabbitMQManagerInterface rabbitMQManagerInterface;
+	NetworkManagerInterface rabbitMQManagerInterface;
 	PositionManagerInterface positionManagerInterface;
 
 	/**
 	 * 
 	 */
-	public Task() {
+	public Task(String id) {
 		userManagerInterface = UserManager.getInstance();
-		rabbitMQManagerInterface = RabbitMQManager.getInstance();
+		rabbitMQManagerInterface = NetworkManager.getInstance();
 		positionManagerInterface = PositionManager.getInstance();
 		answered = false;
 		helpee = null;
@@ -62,6 +64,7 @@ public class Task extends Observable implements TaskInterface{
 		stopPosition = null;
 		startTime = -1;
 		stopTime = -1;
+		this.id = id;
 	}
 
 	/* (non-Javadoc)
@@ -78,7 +81,7 @@ public class Task extends Observable implements TaskInterface{
 		startPosition = user.getPosition();
 		startTime = user.getPosition().getMeasureDateTime();
 		rabbitMQManagerInterface.subscribeToChannel(exchangeName, ExchangeType.fanout);
-		state = LOOKING;
+		state = TaskState.LOOKING;
 	}
 
 	/* (non-Javadoc)
@@ -92,7 +95,7 @@ public class Task extends Observable implements TaskInterface{
 		startTime = System.currentTimeMillis();
 
 		rabbitMQManagerInterface.subscribeToChannel(exchangeName, ExchangeType.fanout);
-		state = LOOKING;
+		state = TaskState.LOOKING;
 		timer = new Timer();
 		timer.schedule(createTimerTask(), TIMERDELAY);
 	}
@@ -111,7 +114,7 @@ public class Task extends Observable implements TaskInterface{
 		//		if (answered) {
 		//			run(rabbitMQManagerInterface.sendStringOnChannel(xmlOutputter.outputString(document), exchangeName));
 		//		}else {
-		run(rabbitMQManagerInterface.sendStringOnMain(xmlOutputter.outputString(document)));
+		rabbitMQManagerInterface.sendStringOnMain(xmlOutputter.outputString(document));
 		//		}
 	}
 
@@ -127,8 +130,13 @@ public class Task extends Observable implements TaskInterface{
 	 * @see com.android.helpme.demo.utils.TaskInterface#getUser()
 	 */
 	@Override
-	public UserInterface getUser() {
+	public UserInterface getHelpee() {
 		return helpee;
+	}
+	
+	@Override
+	public UserInterface getHelper() {
+		return helper;
 	}
 
 	private void run(Runnable runnable){
@@ -155,6 +163,11 @@ public class Task extends Observable implements TaskInterface{
 		}else {
 			helper.updatePosition(userInterface.getPosition());
 		}
+		if (isAnswered() && isUserInShortDistance()) {
+			setSuccesfull();
+		}
+		setChanged();
+		notifyObservers();
 		/*// if our Task is not answered yet, with this it is now
 		if (!answered) {
 			setUser(userInterface);
@@ -203,8 +216,8 @@ public class Task extends Observable implements TaskInterface{
 	 */
 	@Override
 	public void setSuccesfull() {
-		if (state.equalsIgnoreCase(RUNNING) && answered) {
-			state = SUCCESSFUL;
+		if (state == TaskState.RUNNING && answered) {
+			state = TaskState.SUCCESSFUL;
 		}
 	}
 
@@ -214,20 +227,12 @@ public class Task extends Observable implements TaskInterface{
 	}
 
 	/* (non-Javadoc)
-	 * @see com.android.helpme.demo.utils.TaskInterface#state()
-	 */
-	@Override
-	public String state(){
-		return state;
-	}
-
-	/* (non-Javadoc)
 	 * @see com.android.helpme.demo.utils.TaskInterface#setFailed()
 	 */
 	@Override
 	public void setFailed() {
-		if (state.equalsIgnoreCase(RUNNING)) {
-			state = FAILED;
+		if (state == TaskState.RUNNING) {
+			state = TaskState.FAILED;
 		}
 	}
 
@@ -283,16 +288,18 @@ public class Task extends Observable implements TaskInterface{
 		if (stopTime != -1) {
 			element.setAttribute(STOP_TIME, new Long(stopTime).toString());
 		}
-		element.setText(state);
+		element.setAttribute(ID, id);
+		element.setText(state.toString());
 		return element;
 	}
 
 	@Override
 	public void fromXML(Element element) {
 		try{
+			this.id = element.getAttributeValue(ID);
 			helpee = new User(element.getChild(HELPEE));
 			helper = new User(element.getChild(HELPER));
-			state = element.getText();
+			state = TaskState.valueOf(element.getText());
 			if (element.getAttribute(STOP_TIME) != null) {
 				stopTime = element.getAttribute(STOP_TIME).getLongValue();
 			}
@@ -303,13 +310,18 @@ public class Task extends Observable implements TaskInterface{
 			Log.e(TASK, e.toString());
 		}
 	}
+	
+	@Override
+	public TaskState getState() {
+		return state;
+	}
 
 	/* (non-Javadoc)
 	 * @see com.android.helpme.demo.utils.TaskInterface#isSuccsessfull()
 	 */
 	@Override
 	public boolean isSuccsessfull() {
-		if (state.equalsIgnoreCase(SUCCESSFUL)) {
+		if (state == TaskState.SUCCESSFUL) {
 			return true;
 		}
 		return false;
@@ -326,5 +338,10 @@ public class Task extends Observable implements TaskInterface{
 				}
 			}
 		};
+	}
+	
+	@Override
+	public String getID() {
+		return id;
 	}
 }

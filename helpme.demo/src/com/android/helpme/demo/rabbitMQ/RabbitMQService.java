@@ -13,7 +13,7 @@ import android.os.Vibrator;
 import android.util.Log;
 
 import com.android.helpme.demo.interfaces.RabbitMQSerivceInterface;
-import com.android.helpme.demo.manager.RabbitMQManager;
+import com.android.helpme.demo.manager.NetworkManager;
 import com.android.helpme.demo.messagesystem.InAppMessageType;
 import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
@@ -51,16 +51,16 @@ public class RabbitMQService extends Observable implements RabbitMQSerivceInterf
 		Log.i(LOGTAG, "Got message: " + type);
 		switch(type) {
 			case CONNECTED:
-				runThread(connect());
+				runThread(connectRunnable());
 				break;
 			case SUBSCRIBE:
-				runThread(subscribeToChannel(bundle.getString(EXCHANGE_NAME), bundle.getString(EXCHANGE_TYPE)));
+				runThread(subscribeToChannelRunnable(bundle.getString(EXCHANGE_NAME), bundle.getString(EXCHANGE_TYPE)));
 				break;
 			case SEND:
-				runThread(sendStringOnChannel(bundle.getString(DATA_STRING), bundle.getString(EXCHANGE_NAME)));
+				runThread(sendStringOnChannelRunnable(bundle.getString(DATA_STRING), bundle.getString(EXCHANGE_NAME)));
 				break;
 			case SUBSCRIBTION_ENDED:
-				runThread(endSubscribtionToChannel(bundle.getString(EXCHANGE_NAME)));
+				runThread(endSubscribtionToChannelRunnable(bundle.getString(EXCHANGE_NAME)));
 				break;
 			case NOTIFICATION:
 				showNotification(bundle.getString(TEXT), bundle.getString(TITLE));
@@ -75,7 +75,7 @@ public class RabbitMQService extends Observable implements RabbitMQSerivceInterf
 	public RabbitMQService(Context context) {
 		subscribedChannels = new ConcurrentHashMap<String, Channel>();
 		vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-		addObserver(RabbitMQManager.getInstance());
+		addObserver(NetworkManager.getInstance());
 		service = this;
 	}
 
@@ -85,138 +85,169 @@ public class RabbitMQService extends Observable implements RabbitMQSerivceInterf
 		vibrator.vibrate(pattern, -1);
 
 	}
-
+	
 	@Override
-	public synchronized Runnable connect() {
+	public boolean connect() {
+		if(connected) {
+			return true;
+		}
+		try {
+			factory = new ConnectionFactory();
+			factory.setHost(URL);
+			connection = factory.newConnection();
+			connected = connection.isOpen();
+			sendMessage(InAppMessageType.CONNECTED, null);
+
+			Log.i(LOGTAG, "connected to rabbitMQ");
+
+			connected = true;
+			return true;
+		} catch(IOException e) {
+			Log.e(LOGTAG, "connect: " +e.toString());
+		}
+		return false;
+	}
+	
+	@Override
+	public synchronized Runnable connectRunnable() {
 		return new Runnable() {
 
 			@Override
 			public void run() {
-				if(connected) {
-					return;
-				}
-				try {
-					factory = new ConnectionFactory();
-					factory.setHost(URL);
-					connection = factory.newConnection();
-					connected = connection.isOpen();
-					sendMessage(InAppMessageType.CONNECTED, null);
-
-					Log.i(LOGTAG, "connected to rabbitMQ");
-
-					connected = true;
-				} catch(IOException e) {
-					Log.e(LOGTAG, "connect: " +e.toString());
-				}
-
+				connect();
 			}
 		};
 	}
 
 	@Override
-	public synchronized Runnable disconnect() {
+	public boolean disconnect() {
+		if(!connected) {
+			return true;
+		}
+		Set<String> exchangeNames = subscribedChannels.keySet();
+		for(String exchangeName : exchangeNames) {
+			runThread(endSubscribtionToChannelRunnable(exchangeName));
+		}
+		subscribedChannels.clear();
+		connected = false;
+		try {
+			connection.close();
+			Log.i(LOGTAG, "disconnected");
+			return true;
+		} catch(IOException e) {
+			Log.e(LOGTAG, "disconnect: " +e.toString());
+		}
+		return false;
+	}
+	
+	@Override
+	public synchronized Runnable disconnectRunnable() {
 		return new Runnable() {
 
 			@Override
 			public void run() {
-				if(!connected) {
-					return;
-				}
-				Set<String> exchangeNames = subscribedChannels.keySet();
-				for(String exchangeName : exchangeNames) {
-					runThread(endSubscribtionToChannel(exchangeName));
-				}
-				subscribedChannels.clear();
-				connected = false;
-				try {
-					connection.close();
-				} catch(IOException e) {
-					Log.e(LOGTAG, "disconnect: " +e.toString());
-				}
-				Log.i(LOGTAG, "disconnected");
+				disconnect();
 			}
 		};
 	}
-
+	
 	@Override
-	public synchronized Runnable sendStringOnChannel(final String string, final String exchangeName) {
-		return new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-
-					Channel channel = subscribedChannels.get(exchangeName);
-					if(channel != null) {
-						channel.basicPublish(exchangeName, "", null, string.getBytes());
-					}
-					Log.i(LOGTAG, "send to: " + exchangeName);
-				} catch(AlreadyClosedException exception) {
-					Log.e(LOGTAG, exchangeName + " : " + exception.toString());
-					subscribedChannels.remove(exchangeName);
-				} catch(IOException e) {
-					Log.e(LOGTAG, "sendStringOnChannel: " +e.toString());
-				}
-
+	public boolean sendStringOnChannel(String string, String exchangeName) {
+		try {
+			Channel channel = subscribedChannels.get(exchangeName);
+			if(channel != null) {
+				channel.basicPublish(exchangeName, "", null, string.getBytes());
 			}
-		};
+			Log.i(LOGTAG, "send to: " + exchangeName);
+			return true;
+		} catch(AlreadyClosedException exception) {
+			Log.e(LOGTAG, exchangeName + " : " + exception.toString());
+			subscribedChannels.remove(exchangeName);
+		} catch(IOException e) {
+			Log.e(LOGTAG, "sendStringOnChannel: " +e.toString());
+		}
+		return false;
 	}
 
 	@Override
-	public synchronized Runnable subscribeToChannel(final String exchangeName, final String type) {
+	public synchronized Runnable sendStringOnChannelRunnable(final String string, final String exchangeName) {
 		return new Runnable() {
 
 			@Override
 			public void run() {
-				if(!connected) {
-					return;
-				}
-				try {
-					// we create a new channel 
-					Channel channel = connection.createChannel();
-					channel.exchangeDeclare(exchangeName, type);
-					String queueName = channel.queueDeclare().getQueue();
-					channel.queueBind(queueName, exchangeName, "");
-
-					// we define what happens if we recieve a new Message
-					channel.basicConsume(queueName, new RabbitMQConsumer(channel, service));
-					subscribedChannels.putIfAbsent(exchangeName, channel);
-					Log.i(LOGTAG, "subscribed to " + subscribedChannels.size() + " Channels" + "\n" + "started subscribtion to : " + exchangeName);
-
-				} catch(Exception e) {
-					Log.e(LOGTAG, "Connection Problem at subscribeToChannel(): " + e.toString());
-				}
+				sendStringOnChannel(string, exchangeName);
 			}
 		};
 	}
+	
+	@Override
+	public boolean subscribeToChannel(String exchangeName, String type) {
+		if(!connected) {
+			return false;
+		}
+		try {
+			// we create a new channel 
+			Channel channel = connection.createChannel();
+			channel.exchangeDeclare(exchangeName, type);
+			String queueName = channel.queueDeclare().getQueue();
+			channel.queueBind(queueName, exchangeName, "");
+
+			// we define what happens if we recieve a new Message
+			channel.basicConsume(queueName, new RabbitMQConsumer(channel, service));
+			subscribedChannels.putIfAbsent(exchangeName, channel);
+			Log.i(LOGTAG, "subscribed to " + subscribedChannels.size() + " Channels" + "\n" + "started subscribtion to : " + exchangeName);
+			return true;
+		} catch(Exception e) {
+			Log.e(LOGTAG, "Connection Problem at subscribeToChannel(): " + e.toString());
+		}
+		return false;
+	}
 
 	@Override
-	public synchronized Runnable endSubscribtionToChannel(final String exchangeName) {
+	public synchronized Runnable subscribeToChannelRunnable(final String exchangeName, final String type) {
 		return new Runnable() {
 
 			@Override
 			public void run() {
-				Channel channel = subscribedChannels.get(exchangeName);
-				if(channel != null) {
-					try {
-						String queueName = channel.queueDeclare().getQueue();
-						channel.queueUnbind(queueName, exchangeName, "");
-//						channel.basicConsume(queueName, arg1)
+				subscribeToChannel(exchangeName, type);
+			}
+		};
+	}
+	
+	@Override
+	public boolean endSubscribtionToChannel(String exchangeName) {
+		Channel channel = subscribedChannels.get(exchangeName);
+		if(channel != null) {
+			try {
+				String queueName = channel.queueDeclare().getQueue();
+				channel.queueUnbind(queueName, exchangeName, "");
+//				channel.basicConsume(queueName, arg1)
 
-//						channel.close(0,exchangeName);
-						subscribedChannels.remove(exchangeName);
-						channel = null;
-						Log.i(LOGTAG, "subscribed to " + subscribedChannels.size() + " Channels" + "\n" + "ended subscribtion to : " + exchangeName);
-					} catch(AlreadyClosedException e) {
-						Log.e(LOGTAG, "endSubcribtionToChannel: " +e.toString());
-						subscribedChannels.remove(exchangeName);
-					} catch(IOException e) {
-						Log.e(LOGTAG, "endSubcribtionToChannel: " +e.toString());
-					} catch(ShutdownSignalException e) {
-						Log.e(LOGTAG, "endSubcribtionToChannel: " +e.toString());
+//				channel.close(0,exchangeName);
+				subscribedChannels.remove(exchangeName);
+				channel = null;
+				Log.i(LOGTAG, "subscribed to " + subscribedChannels.size() + " Channels" + "\n" + "ended subscribtion to : " + exchangeName);
+				return true;
+			} catch(AlreadyClosedException e) {
+				Log.e(LOGTAG, "endSubcribtionToChannel: " +e.toString());
+				subscribedChannels.remove(exchangeName);
+			} catch(IOException e) {
+				Log.e(LOGTAG, "endSubcribtionToChannel: " +e.toString());
+			} catch(ShutdownSignalException e) {
+				Log.e(LOGTAG, "endSubcribtionToChannel: " +e.toString());
 
-					}
-				}
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public synchronized Runnable endSubscribtionToChannelRunnable(final String exchangeName) {
+		return new Runnable() {
+
+			@Override
+			public void run() {
+				
 			}
 		};
 	}

@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.android.helpme.demo.exceptions.WrongObjectType;
 import com.android.helpme.demo.interfaces.MessageOrchestratorInterface;
 import com.android.helpme.demo.interfaces.ManagerInterfaces.DrawManagerInterface;
-import com.android.helpme.demo.interfaces.ManagerInterfaces.RabbitMQManagerInterface;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.NetworkManagerInterface;
 import com.android.helpme.demo.interfaces.ManagerInterfaces.DrawManagerInterface.DRAWMANAGER_TYPE;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystem;
 import com.android.helpme.demo.messagesystem.AbstractMessageSystemInterface;
@@ -104,7 +104,7 @@ public class MessageOrchestrator extends MessageHandler implements MessageOrches
 		InAppMessage message = (InAppMessage) event.getNewValue();
 		if (message.getType() == InAppMessageType.ERROR) {
 			Log.e(((AbstractMessageSystemInterface)message.getSource()).getLogTag(), ((Exception)message.getObject()).toString());
-		}else if (message.getSource() instanceof RabbitMQManagerInterface) {
+		}else if (message.getSource() instanceof NetworkManagerInterface) {
 			handleRabbitMQMessages(message);
 		}else if (message.getSource() instanceof PositionManager) {
 			handlePositionMessage(message);

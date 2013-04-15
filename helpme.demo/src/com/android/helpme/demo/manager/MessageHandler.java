@@ -6,7 +6,7 @@ import com.android.helpme.demo.exceptions.DontKnowWhatHappenedException;
 import com.android.helpme.demo.exceptions.UnkownMessageType;
 import com.android.helpme.demo.exceptions.WrongObjectType;
 import com.android.helpme.demo.interfaces.ManagerInterfaces.DrawManagerInterface;
-import com.android.helpme.demo.interfaces.ManagerInterfaces.RabbitMQManagerInterface;
+import com.android.helpme.demo.interfaces.ManagerInterfaces.NetworkManagerInterface;
 import com.android.helpme.demo.interfaces.ManagerInterfaces.TaskManagerInterface;
 import com.android.helpme.demo.interfaces.ManagerInterfaces.UserManagerInterface;
 import com.android.helpme.demo.interfaces.ManagerInterfaces.DrawManagerInterface.DRAWMANAGER_TYPE;
@@ -26,7 +26,7 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 
 	abstract protected boolean reloadDatabase();
 
-	protected static RabbitMQManagerInterface rabbitMQManagerInterface = RabbitMQManager.getInstance();
+	protected static NetworkManagerInterface rabbitMQManagerInterface = NetworkManager.getInstance();
 	protected static UserManagerInterface userManagerInterface = UserManager.getInstance();
 	protected static PositionManagerInterface positionManagerInterface = PositionManager.getInstance();
 	protected static TaskManagerInterface historyManagerInterface = TaskManager.getInstance();
@@ -95,7 +95,7 @@ public abstract class MessageHandler extends AbstractMessageSystem implements Me
 	}
 
 	/**
-	 * Handels the Messages form the {@link RabbitMQManager}
+	 * Handels the Messages form the {@link NetworkManager}
 	 * 
 	 * @param message
 	 */

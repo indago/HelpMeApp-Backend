@@ -26,8 +26,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.android.helpme.demo.R;
+import com.android.helpme.demo.interfaces.TaskInterface;
 import com.android.helpme.demo.interfaces.UserInterface;
-import com.android.helpme.demo.utils.TaskInterface;
 import com.android.helpme.demo.utils.User;
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.ItemizedOverlay;

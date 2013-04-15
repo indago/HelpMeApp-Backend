@@ -50,11 +50,11 @@ public class PositionManager implements PositionManagerInterface {
 	 * 
 	 * @param context
 	 */
-	private PositionManager(Context context) {
+	private PositionManager(Context context, Handler handler) {
 		locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		lastLocation = null;
 		started = false;
-		handler = new Handler();
+		this.handler = handler;
 		listeners = new HashSet<PositionEventListener>();
 	}
 
@@ -71,9 +71,9 @@ public class PositionManager implements PositionManagerInterface {
 	 * @param context
 	 * @return {@link PositionManager}
 	 */
-	public static PositionManager getInstance(Context context) {
+	public static PositionManager getInstance(Context context, Handler handler) {
 		if (manager == null) {
-			manager = new PositionManager(context);
+			manager = new PositionManager(context, handler);
 		}
 		return manager;
 	}

@@ -1,21 +1,19 @@
-package com.android.helpme.demo.utils;
+package com.android.helpme.demo.interfaces;
 
 import org.jdom2.Element;
 
-import com.android.helpme.demo.interfaces.UserInterface;
+import com.android.helpme.demo.utils.TaskState;
 import com.android.helpme.demo.utils.position.Position;
 
 public interface TaskInterface {
 
 	public static final String FAILED = "failed";
-	public static final String LOOKING = "looking";
-	public static final String RUNNING = "running";
 	public static final String START_POSITION = "start_position";
 	public static final String START_TIME = "start_time";
+	public static final String ID = "id";
 	public static final String STATE = "state";
 	public static final String STOP_POSITION = "stop_position";
 	public static final String STOP_TIME = "stop_time";
-	public static final String SUCCESSFUL = "successful";
 	public static final String TASK = "task";
 	public static final String USER = "user";
 	public static final String HELPER = "helper";
@@ -40,7 +38,8 @@ public interface TaskInterface {
 
 	public Boolean isAnswered();
 
-	public UserInterface getUser();
+	public UserInterface getHelpee();
+	public UserInterface getHelper();
 
 	public double getDistance();
 
@@ -57,8 +56,6 @@ public interface TaskInterface {
 	public void setSuccesfull();
 	public void setAnswered();
 
-	public String state();
-
 	public void setFailed();
 
 	public void stopUnfinishedTask();
@@ -69,5 +66,9 @@ public interface TaskInterface {
 	
 	public Element toXML();
 	public void fromXML(Element element);
+	
+	public TaskState getState();
+	
+	public String getID();
 
 }

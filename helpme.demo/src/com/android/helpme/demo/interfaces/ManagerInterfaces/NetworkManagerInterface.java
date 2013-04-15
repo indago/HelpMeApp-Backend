@@ -7,7 +7,7 @@ import com.android.helpme.demo.eventmanagement.eventListeners.DataEventListener;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ShutdownSignalException;
 
-public interface RabbitMQManagerInterface extends ManagerInterface {
+public interface NetworkManagerInterface extends ManagerInterface {
 	
 	public static enum ExchangeType{fanout, driect};
 
@@ -34,19 +34,19 @@ public interface RabbitMQManagerInterface extends ManagerInterface {
 	 * @param string
 	 * @return
 	 */
-	public  Runnable sendStringOnMain(String string);
+	public  void sendStringOnMain(String string);
 	/**
 	 * Sends {@link String} on the exchange {@link Channel} with the given Name
 	 * @param string
 	 * @param exchangeName
 	 * @return
 	 */
-	public  Runnable sendStringOnChannel(String string, String exchangeName);
+	public  void sendStringOnChannel(String string, String exchangeName);
 	/**
 	 * Sends {@link String} on all subscribed Exchange {@link Channel}s 
 	 * @return
 	 */
-	public Runnable sendStringToSubscribedChannels(String string);
+	public void sendStringToSubscribedChannels(String string);
 
 	/**
 	 * Subscribes to main exchange {@link Channel}
